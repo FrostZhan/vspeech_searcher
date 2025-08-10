@@ -1,0 +1,6 @@
+moviepy
+chromadb
+torch
+torchvision
+transformers
+datasets
