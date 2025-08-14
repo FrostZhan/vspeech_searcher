@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频语音内容搜索系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>视频语音内容搜索系统</h1>
+        </header>
+        
+        <nav>
+            <button id="indexManagerBtn" class="nav-btn active">索引管理</button>
+            <button id="searchBtn" class="nav-btn">内容搜索</button>
+        </nav>
+        
+        <main id="mainContent">
+            <!-- 索引管理页面 -->
+            <div id="indexManagerPage" class="page active">
+                <div class="page-header">
+                    <h2>视频数据索引管理</h2>
+                    <button id="createIndexBtn" class="btn-primary">创建视频数据索引</button>
+                </div>
+                
+                <div id="indexList" class="index-list">
+                    <!-- 索引列表将通过JavaScript动态生成 -->
+                    <div class="empty-state">
+                        <p>暂无索引数据</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 创建索引页面 -->
+            <div id="createIndexPage" class="page">
+                <div class="page-header">
+                    <button id="backToIndexManager" class="btn-secondary">返回</button>
+                    <h2>创建视频数据索引</h2>
+                </div>
+                
+                <form id="createIndexForm" class="form">
+                    <div class="form-group">
+                        <label for="indexName">索引名称</label>
+                        <input type="text" id="indexName" name="indexName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>选择视频文件</label>
+                        <div id="fileList" class="file-list">
+                            <!-- 文件列表将通过JavaScript动态生成 -->
+                            <div class="empty-state">
+                                <p>未选择任何文件</p>
+                            </div>
+                        </div>
+                        <button type="button" id="selectFilesBtn" class="btn-secondary">选择文件</button>
+                        <input type="file" id="fileInput" multiple accept="video/*" style="display: none;">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="cancelCreateBtn" class="btn-secondary">取消</button>
+                        <button type="submit" class="btn-primary">创建索引</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 索引详情页面 -->
+            <div id="indexDetailPage" class="page">
+                <div class="page-header">
+                    <button id="backToIndexList" class="btn-secondary">返回索引列表</button>
+                    <h2>索引详情</h2>
+                </div>
+                
+                <div class="index-info">
+                    <h3>基本信息</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="label">索引名称:</span>
+                            <span id="detailIndexName" class="value"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">创建日期:</span>
+                            <span id="detailCreateDate" class="value"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">索引状态:</span>
+                            <span id="detailIndexStatus" class="value"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="video-list">
+                    <h3>视频文件列表</h3>
+                    <table id="videoTable" class="table">
+                        <thead>
+                            <tr>
+                                <th>文件路径</th>
+                                <th>索引状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="videoTableBody">
+                            <!-- 视频文件列表将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="search-section">
+                    <button id="searchInIndexBtn" class="btn-primary">视频内容搜索</button>
+                </div>
+            </div>
+            
+            <!-- 搜索页面 -->
+            <div id="searchPage" class="page">
+                <div class="page-header">
+                    <button id="backToIndexDetail" class="btn-secondary">返回索引详情</button>
+                    <h2>视频内容搜索</h2>
+                </div>
+                
+                <form id="searchForm" class="search-form">
+                    <div class="form-group">
+                        <input type="text" id="searchQuery" name="searchQuery" placeholder="请输入搜索关键词" required>
+                        <button type="submit" class="btn-primary">搜索</button>
+                    </div>
+                </form>
+                
+                <div id="searchResults" class="search-results">
+                    <h3>搜索结果</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>视频文件目录</th>
+                                <th>内容起始时间</th>
+                                <th>声音文本</th>
+                            </tr>
+                        </thead>
+                        <tbody id="searchResultsBody">
+                            <!-- 搜索结果将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                    <div id="noResults" class="empty-state" style="display: none;">
+                        <p>未找到相关结果</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

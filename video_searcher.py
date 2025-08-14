@@ -5,12 +5,14 @@ from utils import create_temp_folder, delete_temp_folder
 from wishper import slow_asr, ASR
 from preprocess import preprocess
 import os
+from database import db, IndexStatus
 
 class VideoSpeechContentSearcher():
     chroma_client = None
     current_database = None
     current_database_name = None
     asr_model = None
+    current_index_id = None
 
     def __init__(self):
         self.chroma_client = chromadb.PersistentClient(path="chroma.db")
@@ -25,12 +27,15 @@ class VideoSpeechContentSearcher():
         self.chroma_client.delete_collection(name=name)
 
 
-    def add_videos(self, video_paths):
+    def add_videos(self, video_paths, index_id=None):
         """
         Add videos to the database.
         """
+        self.current_index_id = index_id
         if self.asr_model is None:
+            print("Initializing ASR model...")
             self.asr_model = ASR()
+            print("ASR model initialized.")
         for video_path in video_paths:
             self._add_video(video_path)
             print("-" * 50)
@@ -41,33 +46,47 @@ class VideoSpeechContentSearcher():
         """
         Add a single video to the database.
         """
+        try:
+            # 更新文件状态为处理中
+            if self.current_index_id:
+                db.update_file_status(self.current_index_id, video_path, IndexStatus.PROCESSING)
 
-        if self.asr_model is None:
-            self.asr_model = ASR()
+            if self.asr_model is None:
+                self.asr_model = ASR()
 
-        print(f"Adding video: {video_path}")
-        # Placeholder for video processing logic
-        # Here you would extract audio and process it as needed
-        temp_dir = create_temp_folder()
+            print(f"Adding video: {video_path}")
+            # Placeholder for video processing logic
+            # Here you would extract audio and process it as needed
+            temp_dir = create_temp_folder()
 
-        # Extract audio from video
-        print(f"Extracting audio from video: {video_path}")
-        audio_path = os.path.join(temp_dir, "output_audio.wav")
-        convert_video_to_audio(video_path, audio_path)
-        print(f"Audio extracted to: {audio_path}")
+            # Extract audio from video
+            print(f"Extracting audio from video: {video_path}")
+            audio_path = os.path.join(temp_dir, "output_audio.wav")
+            convert_video_to_audio(video_path, audio_path)
+            print(f"Audio extracted to: {audio_path}")
 
-        # Perform ASR on the audio file
-        print("Performing ASR on the audio file...")
-        text_path = os.path.join(temp_dir, "text.txt")
-        self.asr_model.asr(audio_path, result_path=text_path)
-        print(f"ASR result saved to: {text_path}")
+            # Perform ASR on the audio file
+            print("Performing ASR on the audio file...")
+            text_path = os.path.join(temp_dir, "text.txt")
+            self.asr_model.asr(audio_path, result_path=text_path)
+            print(f"ASR result saved to: {text_path}")
 
-        # Add the processed audio text to the database
-        print(f"Adding text to database {self.current_database_name}")
-        self._add_emebedding(text_path, src_file=video_path)
-        print(f"Video {video_path} added to database {self.current_database_name}")
+            # Add the processed audio text to the database
+            print(f"Adding text to database {self.current_database_name}")
+            self._add_emebedding(text_path, src_file=video_path)
+            print(f"Video {video_path} added to database {self.current_database_name}")
 
-        delete_temp_folder(temp_dir)
+            # 更新文件状态为已完成
+            if self.current_index_id:
+                db.update_file_status(self.current_index_id, video_path, IndexStatus.COMPLETED)
+
+            delete_temp_folder(temp_dir)
+        except Exception as e:
+            # 更新文件状态为错误
+            if self.current_index_id:
+                db.update_file_status(self.current_index_id, video_path, IndexStatus.ERROR)
+            print(f"处理视频 {video_path} 时出错: {str(e)}")
+            raise
 
 
     def _add_emebedding(self, text_file, src_file=""):
