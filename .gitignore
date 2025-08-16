@@ -1,6 +1,10 @@
 .venv
 
 __pycache__
+release
+dist
+models
+build
 
 chroma*
 
@@ -9,5 +13,5 @@ chroma*
 *.mp3
 *.wav
 result.txt
-*models
 *.db
+*.spec

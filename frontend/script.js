@@ -25,8 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('createIndexBtn').addEventListener('click', () => showPage('createIndex'));
     document.getElementById('backToIndexManager').addEventListener('click', () => showPage('indexManager'));
     document.getElementById('cancelCreateBtn').addEventListener('click', () => showPage('indexManager'));
-    document.getElementById('selectFilesBtn').addEventListener('click', () => document.getElementById('fileInput').click());
-    document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+    document.getElementById('selectFilesBtn').addEventListener('click', handleFileSelect);
     document.getElementById('createIndexForm').addEventListener('submit', createIndex);
     
     // 设置索引详情页面的事件
@@ -95,10 +94,18 @@ function resetCreateIndexForm() {
 }
 
 // 处理文件选择
-function handleFileSelect(event) {
-    const files = Array.from(event.target.files);
-    selectedFiles = [...selectedFiles, ...files];
-    updateFileList();
+async function handleFileSelect(event) {
+    const { ipcRenderer } = window.require('electron');
+    const filePaths = await ipcRenderer.invoke('open-file-dialog');
+    if (filePaths && filePaths.length > 0) {
+        // 将文件路径转换为包含name属性的对象
+        const newFiles = filePaths.map(path => ({
+            path: path,
+            name: path.split('/').pop().split('\\').pop() // 提取文件名
+        }));
+        selectedFiles = [...selectedFiles, ...newFiles];
+        updateFileList();
+    }
 }
 
 // 更新文件列表显示
@@ -215,19 +222,15 @@ async function createIndex(event) {
     }
     
     try {
-        // 创建FormData对象来上传文件
-        const formData = new FormData();
-        formData.append('name', indexName);
-        
-        // 添加文件到FormData
-        selectedFiles.forEach((file, index) => {
-            formData.append('files', file);
-        });
-        
-        // 上传索引和文件
         const response = await fetch(`${API_BASE}/indexes`, {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: indexName,
+                filePaths: selectedFiles.map(file => file.path)
+            })
         });
         
         const data = await response.json();
@@ -237,8 +240,6 @@ async function createIndex(event) {
         }
         
         alert(`索引 "${indexName}" 创建成功！`);
-        
-        // 设置当前索引并跳转到详情页面
         currentIndex = data;
         showPage('indexDetail');
     } catch (error) {

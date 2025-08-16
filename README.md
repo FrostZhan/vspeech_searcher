@@ -59,7 +59,7 @@ HF_ENDPOINT=https://hf-mirror.com python api.py
 ./start_api.sh
 ```
 
-后端服务将运行在 `http://localhost:5000`
+后端服务将运行在 `http://localhost:5001`
 
 ## 运行前端界面
 

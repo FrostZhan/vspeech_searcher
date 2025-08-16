@@ -7,3 +7,4 @@ datasets
 flask
 flask-cors
 llama-cpp-python # cpu only
+python-dotenv

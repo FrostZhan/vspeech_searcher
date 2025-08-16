@@ -6,6 +6,14 @@ from video_searcher import VideoSpeechContentSearcher
 import threading
 from database import db, Index, File, IndexStatus
 
+try:
+    # load environment variables from .env file (requires `python-dotenv`)
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    print("load env error")
+
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
 
@@ -39,32 +47,33 @@ def get_indexes():
 def create_index():
     """创建新索引"""
     try:
+        if not request.is_json:
+            return jsonify({'error': '请求必须为JSON格式'}), 400
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': '无效的JSON数据'}), 400
+            
         # 获取索引名称
-        index_name = request.form.get('name')
+        index_name = data.get('name')
         
         if not index_name:
             return jsonify({'error': '索引名称不能为空'}), 400
         
-        # 获取上传的文件
-        uploaded_files = request.files.getlist('files')
+        # 获取文件路径列表
+        file_paths = data.get('filePaths', []) if isinstance(data, dict) else []
         
-        if not uploaded_files:
+        if not file_paths:
             return jsonify({'error': '视频文件列表不能为空'}), 400
         
-        # 创建临时文件夹
-        temp_folder = os.path.join('tmp', str(uuid.uuid4()))
-        os.makedirs(temp_folder, exist_ok=True)
-        
-        # 保存上传的文件到临时文件夹
+        # 获取文件路径列表
         video_file_paths = []
-        for file in uploaded_files:
-            if file.filename != '':
-                # 生成文件路径
-                file_path = os.path.join(temp_folder, file.filename)
-                # 保存文件
-                file.save(file_path)
-                # 添加到文件路径列表
-                video_file_paths.append(file_path)
+        for path in file_paths:
+            if not os.path.exists(path):
+                return jsonify({'error': f'文件不存在: {path}'}), 400
+            if not os.path.isfile(path):
+                return jsonify({'error': f'路径不是文件: {path}'}), 400
+            video_file_paths.append(path)
         
         # 创建索引记录
         index_obj = db.create_index(index_name, video_file_paths)
@@ -120,7 +129,13 @@ def search_in_index(index_id):
         if not index_obj:
             return jsonify({'error': '索引不存在'}), 404
         
-        data = request.json
+        if not request.is_json:
+            return jsonify({'error': '请求必须为JSON格式'}), 400
+            
+        data = request.get_json()
+        if not data or not isinstance(data, dict):
+            return jsonify({'error': '无效的JSON数据'}), 400
+            
         query = data.get('query')
         
         if not query:
@@ -173,4 +188,4 @@ def format_time(seconds):
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
