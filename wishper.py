@@ -32,16 +32,16 @@ class ASR:
         }
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
         torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
-
+        print("Using device: ", device)
         model_id = "openai/whisper-large-v3-turbo"
 
         self.model = AutoModelForSpeechSeq2Seq.from_pretrained(
             model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True
         )
         self.model.to(device)
-
+        print("Using model: ", model_id)
         processor = AutoProcessor.from_pretrained(model_id)
-
+        print("Using pipeline: automatic-speech-recognition")
         self.pipe = pipeline(
             "automatic-speech-recognition",
             model=self.model,
@@ -210,4 +210,4 @@ if __name__ == "__main__":
     model.pipe = None
     model.model = None
     torch.cuda.empty_cache()
-    time.sleep(100)
+    print("done")

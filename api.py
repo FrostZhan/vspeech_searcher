@@ -39,22 +39,39 @@ def get_indexes():
 def create_index():
     """创建新索引"""
     try:
-        data = request.json
-        index_name = data.get('name')
-        video_files = data.get('files', [])
+        # 获取索引名称
+        index_name = request.form.get('name')
         
         if not index_name:
             return jsonify({'error': '索引名称不能为空'}), 400
         
-        if not video_files:
+        # 获取上传的文件
+        uploaded_files = request.files.getlist('files')
+        
+        if not uploaded_files:
             return jsonify({'error': '视频文件列表不能为空'}), 400
         
+        # 创建临时文件夹
+        temp_folder = os.path.join('tmp', str(uuid.uuid4()))
+        os.makedirs(temp_folder, exist_ok=True)
+        
+        # 保存上传的文件到临时文件夹
+        video_file_paths = []
+        for file in uploaded_files:
+            if file.filename != '':
+                # 生成文件路径
+                file_path = os.path.join(temp_folder, file.filename)
+                # 保存文件
+                file.save(file_path)
+                # 添加到文件路径列表
+                video_file_paths.append(file_path)
+        
         # 创建索引记录
-        index_obj = db.create_index(index_name, video_files)
+        index_obj = db.create_index(index_name, video_file_paths)
         index_id = index_obj.id
         
         # 启动后台处理线程
-        thread = threading.Thread(target=process_videos, args=(index_id, index_name, video_files))
+        thread = threading.Thread(target=process_videos, args=(index_id, index_name, video_file_paths))
         thread.start()
         
         # 转换为字典格式以供JSON序列化

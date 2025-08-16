@@ -37,10 +37,26 @@
 pip install -r requirements.txt
 ```
 
+模型依赖
+
+asr：https://huggingface.co/openai/whisper-large-v3-turbo
+
+embedding: https://huggingface.co/nomic-ai/nomic-embed-text-v2-moe-GGUF
+
+
+
 ## 运行后端服务
 
+### 方法一：直接运行（需要手动设置环境变量）
+
 ```bash
-python api.py
+HF_ENDPOINT=https://hf-mirror.com python api.py
+```
+
+### 方法二：使用启动脚本（推荐）
+
+```bash
+./start_api.sh
 ```
 
 后端服务将运行在 `http://localhost:5000`

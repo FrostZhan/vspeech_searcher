@@ -215,21 +215,31 @@ async function createIndex(event) {
     }
     
     try {
-        const fileNames = selectedFiles.map(f => f.name);
-        const indexData = {
-            name: indexName,
-            files: fileNames
-        };
+        // 创建FormData对象来上传文件
+        const formData = new FormData();
+        formData.append('name', indexName);
         
-        const createdIndex = await apiCall('/indexes', {
-            method: 'POST',
-            body: JSON.stringify(indexData)
+        // 添加文件到FormData
+        selectedFiles.forEach((file, index) => {
+            formData.append('files', file);
         });
+        
+        // 上传索引和文件
+        const response = await fetch(`${API_BASE}/indexes`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || '请求失败');
+        }
         
         alert(`索引 "${indexName}" 创建成功！`);
         
         // 设置当前索引并跳转到详情页面
-        currentIndex = createdIndex;
+        currentIndex = data;
         showPage('indexDetail');
     } catch (error) {
         alert(`创建索引失败: ${error.message}`);
@@ -256,9 +266,11 @@ async function loadIndexDetail(index) {
         // 如果有文件数据，则显示文件列表
         if (indexDetail.files && indexDetail.files.length > 0) {
             indexDetail.files.forEach(file => {
+                // 只显示文件名，不显示完整路径
+                const fileName = file.path.split('/').pop().split('\\').pop();
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${file.path}</td>
+                    <td>${fileName}</td>
                     <td class="status-${file.status}">${getStatusText(file.status)}</td>
                     <td><button class="btn-secondary view-video-btn" data-path="${file.path}">查看</button></td>
                 `;

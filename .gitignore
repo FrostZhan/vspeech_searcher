@@ -9,3 +9,5 @@ chroma*
 *.mp3
 *.wav
 result.txt
+*models
+*.db
