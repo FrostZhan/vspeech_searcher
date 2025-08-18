@@ -305,12 +305,15 @@ function initializeSearchPage() {
     document.getElementById('searchKeyword').value = '';
     document.getElementById('searchLimit').value = '10';
     
-    // 填充视频选择下拉框
+    // 填充视频选择下拉框，只显示索引成功的视频
     const videoSelect = document.getElementById('searchVideos');
     videoSelect.innerHTML = '';
     
     if (currentIndex && currentIndex.files) {
-        currentIndex.files.forEach(file => {
+        // 过滤出状态为"completed"的文件
+        const completedFiles = currentIndex.files.filter(file => file.status === 'completed');
+        
+        completedFiles.forEach(file => {
             const option = document.createElement('option');
             // 只显示文件名，不显示完整路径
             const fileName = file.path.split('/').pop().split('\\').pop();
@@ -334,9 +337,9 @@ async function performSearch(event) {
     const selectedOptions = Array.from(videoSelect.selectedOptions);
     const videoPaths = selectedOptions.map(option => option.value);
     
-    // 至少需要提供文本搜索或关键字搜索之一
-    if (!query && !keyword) {
-        alert('请输入搜索关键词或关键字');
+    // 文本搜索是必须填写的
+    if (!query) {
+        alert('请输入搜索关键词');
         return;
     }
     
@@ -347,12 +350,9 @@ async function performSearch(event) {
     
     // 构造搜索参数
     const searchParams = {
-        nResults: limit
+        nResults: limit,
+        query: query
     };
-    
-    if (query) {
-        searchParams.query = query;
-    }
     
     if (keyword) {
         searchParams.keyword = keyword;

@@ -137,6 +137,7 @@ def search_in_index(index_id):
         n_results = data.get('nResults', 10)
         video_paths = data.get('videoPaths', None)
         keyword = data.get('keyword', None)
+        print(f"index: {index_id}, query: {query}, n_results: {n_results}, video_paths: {video_paths}, keyword: {keyword}")
 
         documents, metadatas = vs.search_content(index_id, n_results=n_results, query=query, video_paths=video_paths, keyword=keyword)
         
