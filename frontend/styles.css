@@ -316,6 +316,26 @@ nav {
     margin-top: 30px;
 }
 
+/* 索引名称显示样式 */
+.index-name-display {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 4px solid #007bff;
+}
+
+.index-name-display p {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #495057;
+}
+
+.index-name-display #currentSearchIndexName {
+    font-weight: 600;
+    color: #007bff;
+}
+
 /* 空状态样式 */
 .empty-state {
     text-align: center;
@@ -325,6 +345,67 @@ nav {
 
 .empty-state p {
     font-size: 1.1rem;
+}
+
+/* 加载指示器样式 */
+.loading-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-indicator p {
+    font-size: 1.2rem;
+    color: #333;
+    margin: 0;
+}
+
+/* 搜索结果区域加载指示器样式 */
+.search-loading-indicator {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.search-loading-indicator .spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+.search-loading-indicator p {
+    font-size: 1rem;
+    color: #6c757d;
+    margin: 0;
 }
 
 /* 必填项标识 */

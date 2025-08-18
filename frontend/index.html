@@ -119,6 +119,9 @@
                     <button id="backToIndexDetail" class="btn-secondary">返回索引详情</button>
                     <h2>视频内容搜索</h2>
                 </div>
+                <div class="index-name-display">
+                    <p>当前索引: <span id="currentSearchIndexName"></span></p>
+                </div>
                 
                 <form id="searchForm" class="search-form">
                     <div class="form-group">
@@ -150,6 +153,11 @@
                 
                 <div id="searchResults" class="search-results">
                     <h3>搜索结果</h3>
+                    <!-- 搜索结果加载指示器 -->
+                    <div id="searchLoadingIndicator" class="search-loading-indicator" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>搜索中...</p>
+                    </div>
                     <table class="table">
                         <thead>
                             <tr>

@@ -191,6 +191,38 @@ function updateFileList() {
     });
 }
 
+// 显示搜索结果区域加载指示器
+function showSearchLoading() {
+    const searchResults = document.getElementById('searchResults');
+    const searchLoadingIndicator = document.getElementById('searchLoadingIndicator');
+    const searchResultsTable = searchResults.querySelector('.table');
+    const noResults = document.getElementById('noResults');
+    
+    // 隐藏表格和无结果提示
+    if (searchResultsTable) {
+        searchResultsTable.style.display = 'none';
+    }
+    noResults.style.display = 'none';
+    
+    // 显示加载指示器
+    searchLoadingIndicator.style.display = 'flex';
+}
+
+// 隐藏搜索结果区域加载指示器
+function hideSearchLoading() {
+    const searchResults = document.getElementById('searchResults');
+    const searchLoadingIndicator = document.getElementById('searchLoadingIndicator');
+    const searchResultsTable = searchResults.querySelector('.table');
+    
+    // 隐藏加载指示器
+    searchLoadingIndicator.style.display = 'none';
+    
+    // 显示表格
+    if (searchResultsTable) {
+        searchResultsTable.style.display = 'table';
+    }
+}
+
 // API 调用函数
 const API_BASE = 'http://localhost:5001/api';
 
@@ -352,6 +384,12 @@ async function loadIndexDetail(index) {
 
 // 初始化搜索页面
 function initializeSearchPage() {
+    // 显示当前索引名称
+    const indexNameElement = document.getElementById('currentSearchIndexName');
+    if (indexNameElement && currentIndex) {
+        indexNameElement.textContent = currentIndex.name;
+    }
+    
     // 清空搜索表单
     document.getElementById('searchQuery').value = '';
     document.getElementById('searchKeyword').value = '';
@@ -400,6 +438,9 @@ async function performSearch(event) {
         return;
     }
     
+    // 显示搜索结果区域加载指示器
+    showSearchLoading();
+    
     // 构造搜索参数
     const searchParams = {
         nResults: limit,
@@ -424,6 +465,9 @@ async function performSearch(event) {
         showMessage('搜索完成', 'success');
     } catch (error) {
         showMessage(`搜索失败: ${error.message}`, 'error');
+    } finally {
+        // 隐藏搜索结果区域加载指示器
+        hideSearchLoading();
     }
 }
 
