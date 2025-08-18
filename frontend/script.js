@@ -734,21 +734,21 @@ function playVideoAtTime(filePath, startTime) {
     // 根据不同操作系统构建命令
     let command;
     if (platform === 'win32') {
-        // Windows系统使用VLC播放器
-        command = `vlc --start-time=${seconds} "${filePath}"`;
+        // Windows系统使用PotPlayer播放器
+        command = `"PotPlayerMini64.exe" "${filePath}" /seek=${seconds}`;
     } else if (platform === 'darwin') {
-        // macOS系统使用VLC播放器
-        command = `open -a VLC --args --start-time=${seconds} "${filePath}"`;
+        // macOS系统使用PotPlayer播放器（如果已安装）
+        command = `open -a PotPlayer --args "${filePath}" /seek=${seconds}`;
     } else {
-        // Linux系统使用VLC播放器
-        command = `vlc --start-time=${seconds} "${filePath}"`;
+        // Linux系统使用PotPlayer播放器（如果已安装）
+        command = `potplayer "${filePath}" /seek=${seconds}`;
     }
     
     // 执行命令
     exec(command, (error, stdout, stderr) => {
         if (error) {
             console.error(`执行命令时出错: ${error}`);
-            alert(`无法播放视频文件: ${filePath}\n请确保已安装VLC播放器`);
+            alert(`无法播放视频文件: ${filePath}\n请确保已安装PotPlayer播放器`);
             return;
         }
         if (stderr) {
