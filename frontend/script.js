@@ -480,7 +480,8 @@ async function loadIndexDetail(index) {
             document.querySelectorAll('.view-video-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const filePath = this.getAttribute('data-path');
-                    alert(`查看视频文件: ${filePath}\n(在实际应用中会打开视频播放器)`);
+                    const { shell } = window.require('electron');
+                    shell.openPath(filePath);
                 });
             });
             
@@ -697,12 +698,61 @@ function displaySearchResults(results) {
     resultsBody.innerHTML = '';
     
     results.forEach(result => {
+        // 只显示文件名，不显示完整路径
+        const fileName = result.videoPath.split('/').pop().split('\\').pop();
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${result.videoPath}</td>
+            <td>${fileName}</td>
             <td>${result.startTime}</td>
             <td>${result.text}</td>
+            <td><button class="btn-secondary play-video-btn" data-path="${result.videoPath}" data-time="${result.startTime}">播放</button></td>
         `;
         resultsBody.appendChild(row);
+    });
+    
+    // 添加播放按钮事件
+    document.querySelectorAll('.play-video-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filePath = this.getAttribute('data-path');
+            const startTime = this.getAttribute('data-time');
+            playVideoAtTime(filePath, startTime);
+        });
+    });
+}
+
+// 播放视频并定位到指定时间
+function playVideoAtTime(filePath, startTime) {
+    // 这里需要根据不同的操作系统和视频播放器来实现
+    // 由于Electron的shell.openPath不支持传递参数，我们需要使用child_process来执行命令
+    const { exec } = window.require('child_process');
+    const { platform } = window.require('process');
+    
+    // 将时间格式转换为秒数
+    const timeParts = startTime.split(':');
+    const seconds = parseInt(timeParts[0]) * 3600 + parseInt(timeParts[1]) * 60 + parseInt(timeParts[2]);
+    
+    // 根据不同操作系统构建命令
+    let command;
+    if (platform === 'win32') {
+        // Windows系统使用VLC播放器
+        command = `vlc --start-time=${seconds} "${filePath}"`;
+    } else if (platform === 'darwin') {
+        // macOS系统使用VLC播放器
+        command = `open -a VLC --args --start-time=${seconds} "${filePath}"`;
+    } else {
+        // Linux系统使用VLC播放器
+        command = `vlc --start-time=${seconds} "${filePath}"`;
+    }
+    
+    // 执行命令
+    exec(command, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`执行命令时出错: ${error}`);
+            alert(`无法播放视频文件: ${filePath}\n请确保已安装VLC播放器`);
+            return;
+        }
+        if (stderr) {
+            console.error(`命令执行出错: ${stderr}`);
+        }
     });
 }
