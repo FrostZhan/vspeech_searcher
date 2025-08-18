@@ -15,6 +15,12 @@ const navButtons = {
 let currentIndex = null;
 let selectedFiles = [];
 
+// 分页相关变量
+const PAGE_SIZE = 10;
+let currentPage = 1;
+let totalPages = 0;
+let allIndexes = [];
+
 // 初始化应用
 document.addEventListener('DOMContentLoaded', function() {
     // 设置导航按钮事件
@@ -41,6 +47,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 显示默认页面
     showPage('indexManager');
+    
+    // 设置索引详情页面的删除按钮事件
+    document.getElementById('deleteIndexBtn').addEventListener('click', deleteIndex);
+    
+    // 设置索引详情页面的添加视频按钮事件
+    document.getElementById('addVideoBtn').addEventListener('click', addVideoFiles);
 });
 
 // 页面导航函数
@@ -254,39 +266,136 @@ async function apiCall(endpoint, options = {}) {
 async function loadIndexList() {
     try {
         const indexes = await apiCall('/indexes');
-        const indexListContainer = document.getElementById('indexList');
+        allIndexes = indexes;
+        totalPages = Math.ceil(indexes.length / PAGE_SIZE);
         
-        if (indexes.length === 0) {
-            indexListContainer.innerHTML = '<div class="empty-state"><p>暂无索引数据</p></div>';
-            return;
-        }
+        // 显示当前页的索引
+        displayIndexesForPage(currentPage);
         
-        indexListContainer.innerHTML = '';
-        indexes.forEach(index => {
-            const indexCard = document.createElement('div');
-            indexCard.className = 'index-card';
-            indexCard.innerHTML = `
-                <h3>${index.name}</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="label">创建日期:</span>
-                        <span class="value">${index.createDate}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">索引状态:</span>
-                        <span class="value status-${index.status}">${getStatusText(index.status)}</span>
-                    </div>
-                </div>
-            `;
-            indexCard.addEventListener('click', () => {
-                currentIndex = index;
-                showPage('indexDetail');
-            });
-            indexListContainer.appendChild(indexCard);
-        });
+        // 更新分页控件
+        updatePagination();
     } catch (error) {
         console.error('加载索引列表失败:', error);
         document.getElementById('indexList').innerHTML = '<div class="empty-state"><p>加载数据失败</p></div>';
+    }
+}
+
+// 显示指定页的索引
+function displayIndexesForPage(page) {
+    const indexListContainer = document.getElementById('indexList');
+    const startIndex = (page - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const indexesToShow = allIndexes.slice(startIndex, endIndex);
+    
+    if (indexesToShow.length === 0) {
+        indexListContainer.innerHTML = '<div class="empty-state"><p>暂无索引数据</p></div>';
+        return;
+    }
+    
+    indexListContainer.innerHTML = '';
+    indexesToShow.forEach(index => {
+        const indexCard = document.createElement('div');
+        indexCard.className = 'index-card';
+        indexCard.innerHTML = `
+            <h3>${index.name}</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="label">创建时间:</span>
+                    <span class="value">${index.createDate}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">索引状态:</span>
+                    <span class="value status-${index.status}">${getStatusText(index.status)}</span>
+                </div>
+            </div>
+            <div class="index-card-actions">
+                <button class="btn-secondary delete-index-btn" data-index-id="${index.id}">删除索引</button>
+            </div>
+        `;
+        indexCard.addEventListener('click', (event) => {
+            // 检查点击的是否是删除按钮
+            if (event.target.classList.contains('delete-index-btn')) {
+                return;
+            }
+            currentIndex = index;
+            showPage('indexDetail');
+        });
+        indexListContainer.appendChild(indexCard);
+    });
+    
+    // 添加删除按钮事件
+    document.querySelectorAll('.delete-index-btn').forEach(btn => {
+        btn.addEventListener('click', async function(event) {
+            event.stopPropagation(); // 阻止事件冒泡到索引卡片
+            const indexId = this.getAttribute('data-index-id');
+            
+            // 确认删除
+            if (!confirm('确定要删除这个索引吗？此操作不可恢复。')) {
+                return;
+            }
+            
+            try {
+                await apiCall(`/indexes/${indexId}`, {
+                    method: 'DELETE'
+                });
+                
+                showMessage('索引删除成功', 'success');
+                
+                // 重新加载索引列表
+                await loadIndexList();
+                
+                // 如果当前显示的是被删除索引的详情页面，返回到索引管理页面
+                if (currentIndex && currentIndex.id === indexId) {
+                    showPage('indexManager');
+                    currentIndex = null;
+                }
+            } catch (error) {
+                showMessage(`删除索引失败: ${error.message}`, 'error');
+            }
+        });
+    });
+}
+
+// 更新分页控件
+function updatePagination() {
+    const paginationElement = document.getElementById('pagination');
+    const pageInfoElement = document.getElementById('pageInfo');
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+    
+    if (totalPages <= 1) {
+        paginationElement.style.display = 'none';
+        return;
+    }
+    
+    paginationElement.style.display = 'flex';
+    pageInfoElement.textContent = `第 ${currentPage} 页，共 ${totalPages} 页`;
+    
+    // 更新按钮状态
+    prevButton.disabled = currentPage === 1;
+    nextButton.disabled = currentPage === totalPages;
+    
+    // 添加事件监听器（如果还没有添加）
+    if (!prevButton.hasEventListener) {
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                displayIndexesForPage(currentPage);
+                updatePagination();
+            }
+        });
+        prevButton.hasEventListener = true;
+    }
+    
+    if (!nextButton.hasEventListener) {
+        nextButton.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayIndexesForPage(currentPage);
+                updatePagination();
+            }
+        });
+        nextButton.hasEventListener = true;
     }
 }
 
@@ -358,7 +467,10 @@ async function loadIndexDetail(index) {
                 row.innerHTML = `
                     <td>${fileName}</td>
                     <td class="status-${file.status}">${getStatusText(file.status)}</td>
-                    <td><button class="btn-secondary view-video-btn" data-path="${file.path}">查看</button></td>
+                    <td>
+                        <button class="btn-secondary view-video-btn" data-path="${file.path}">查看</button>
+                        <button class="btn-secondary delete-video-btn" data-path="${file.path}">删除</button>
+                    </td>
                 `;
                 videoTableBody.appendChild(row);
             });
@@ -368,6 +480,14 @@ async function loadIndexDetail(index) {
                 btn.addEventListener('click', function() {
                     const filePath = this.getAttribute('data-path');
                     alert(`查看视频文件: ${filePath}\n(在实际应用中会打开视频播放器)`);
+                });
+            });
+            
+            // 添加删除按钮事件
+            document.querySelectorAll('.delete-video-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const filePath = this.getAttribute('data-path');
+                    await deleteVideoFile(filePath);
                 });
             });
         } else {
@@ -429,7 +549,7 @@ async function performSearch(event) {
     
     // 文本搜索是必须填写的
     if (!query) {
-        showMessage('请输入搜索关键词', 'error');
+        showMessage('请输入搜索文本', 'error');
         return;
     }
     
@@ -468,6 +588,96 @@ async function performSearch(event) {
     } finally {
         // 隐藏搜索结果区域加载指示器
         hideSearchLoading();
+    }
+}
+
+// 删除索引
+async function deleteIndex() {
+    if (!currentIndex) return;
+    
+    // 确认删除
+    if (!confirm('确定要删除这个索引吗？此操作不可恢复。')) {
+        return;
+    }
+    
+    try {
+        await apiCall(`/indexes/${currentIndex.id}`, {
+            method: 'DELETE'
+        });
+        
+        showMessage('索引删除成功', 'success');
+        
+        // 返回到索引管理页面
+        showPage('indexManager');
+        currentIndex = null;
+    } catch (error) {
+        showMessage(`删除索引失败: ${error.message}`, 'error');
+    }
+}
+
+// 添加视频文件
+async function addVideoFiles() {
+    if (!currentIndex) return;
+    
+    try {
+        const { ipcRenderer } = window.require('electron');
+        const filePaths = await ipcRenderer.invoke('open-file-dialog');
+        
+        if (filePaths && filePaths.length > 0) {
+            // 显示加载指示器
+            showSearchLoading();
+            
+            // 向索引中添加文件
+            const response = await fetch(`${API_BASE}/indexes/${currentIndex.id}/files`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    filePaths: filePaths
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || '请求失败');
+            }
+            
+            showMessage('文件添加成功', 'success');
+            
+            // 重新加载索引详情
+            await loadIndexDetail(currentIndex);
+        }
+    } catch (error) {
+        showMessage(`添加文件失败: ${error.message}`, 'error');
+    } finally {
+        // 隐藏加载指示器
+        hideSearchLoading();
+    }
+}
+
+// 删除视频文件
+async function deleteVideoFile(filePath) {
+    if (!currentIndex) return;
+    
+    // 确认删除
+    if (!confirm('确定要删除这个视频文件吗？此操作不可恢复。')) {
+        return;
+    }
+    
+    try {
+        // 从索引中删除文件
+        await apiCall(`/indexes/${currentIndex.id}/files/${encodeURIComponent(filePath)}`, {
+            method: 'DELETE'
+        });
+        
+        showMessage('文件删除成功', 'success');
+        
+        // 重新加载索引详情
+        await loadIndexDetail(currentIndex);
+    } catch (error) {
+        showMessage(`删除文件失败: ${error.message}`, 'error');
     }
 }
 

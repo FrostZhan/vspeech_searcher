@@ -16,9 +16,12 @@ class VideoSpeechContentSearcher():
         self.chroma_client = chromadb.PersistentClient(path="chroma.db")
         self.database = db
 
-    def delete_database(self, name):
-        self.chroma_client.delete_collection(name=name)
+    def delete_database(self, index_id):
+        self.chroma_client.delete_collection(name=index_id)
 
+    def delete_video(self, index_id, video_path):
+        collection = self.chroma_client.get_collection(name=index_id, embedding_function=MyEmbeddingFunction())
+        collection.delete(where={"src_file": video_path})
 
     def add_videos(self, video_paths, index_id):
         """

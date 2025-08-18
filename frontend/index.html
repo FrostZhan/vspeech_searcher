@@ -34,6 +34,13 @@
                         <p>暂无索引数据</p>
                     </div>
                 </div>
+                
+                <!-- 分页控件 -->
+                <div id="pagination" class="pagination" style="display: none;">
+                    <button id="prevPage" class="btn-secondary">上一页</button>
+                    <span id="pageInfo"></span>
+                    <button id="nextPage" class="btn-secondary">下一页</button>
+                </div>
             </div>
             
             <!-- 创建索引页面 -->
@@ -81,19 +88,25 @@
                             <span class="label">索引名称:</span>
                             <span id="detailIndexName" class="value"></span>
                         </div>
-                        <div class="info-item">
-                            <span class="label">创建日期:</span>
-                            <span id="detailCreateDate" class="value"></span>
-                        </div>
+                    <div class="info-item">
+                        <span class="label">创建时间:</span>
+                        <span id="detailCreateDate" class="value"></span>
+                    </div>
                         <div class="info-item">
                             <span class="label">索引状态:</span>
                             <span id="detailIndexStatus" class="value"></span>
                         </div>
                     </div>
+                    <div class="index-actions">
+                        <button id="deleteIndexBtn" class="btn-secondary">删除索引</button>
+                    </div>
                 </div>
                 
                 <div class="video-list">
-                    <h3>视频文件列表</h3>
+                    <div class="video-list-header">
+                        <h3>视频文件列表</h3>
+                        <button id="addVideoBtn" class="btn-secondary">添加视频文件</button>
+                    </div>
                     <table id="videoTable" class="table">
                         <thead>
                             <tr>

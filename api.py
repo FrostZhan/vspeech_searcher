@@ -117,6 +117,94 @@ def get_index_detail(index_id):
     except Exception as e:
         return jsonify({'error': f'获取索引详情失败: {str(e)}'}), 500
 
+@app.route('/api/indexes/<index_id>', methods=['DELETE'])
+def delete_index(index_id):
+    """删除索引"""
+    try:
+        # 检查索引是否存在
+        index_obj = db.get_index_by_id(index_id)
+        if not index_obj:
+            return jsonify({'error': '索引不存在'}), 404
+        
+        # 删除索引
+        if db.delete_index(index_id):
+            return jsonify({'message': '索引删除成功'}), 200
+        else:
+            return jsonify({'error': '索引删除失败'}), 500
+    except Exception as e:
+        return jsonify({'error': f'索引删除失败: {str(e)}'}), 500
+
+@app.route('/api/indexes/<index_id>/files', methods=['POST'])
+def add_files_to_index(index_id):
+    """向索引中添加文件"""
+    try:
+        # 检查索引是否存在
+        index_obj = db.get_index_by_id(index_id)
+        if not index_obj:
+            return jsonify({'error': '索引不存在'}), 404
+        
+        if not request.is_json:
+            return jsonify({'error': '请求必须为JSON格式'}), 400
+            
+        data = request.get_json()
+        if not data or not isinstance(data, dict):
+            return jsonify({'error': '无效的JSON数据'}), 400
+            
+        # 获取文件路径列表
+        file_paths = data.get('filePaths', [])
+        
+        if not file_paths:
+            return jsonify({'error': '文件列表不能为空'}), 400
+        
+        # 检查文件是否存在
+        for path in file_paths:
+            if not os.path.exists(path):
+                return jsonify({'error': f'文件不存在: {path}'}), 400
+            if not os.path.isfile(path):
+                return jsonify({'error': f'路径不是文件: {path}'}), 400
+        
+        # 添加文件到数据库
+        new_files = []
+        for path in file_paths:
+            # 检查文件是否已存在于索引中
+            existing_file = next((f for f in index_obj.files if f.path == path), None)
+            if existing_file:
+                # 如果文件已存在，跳过
+                continue
+            
+            # 添加新文件到数据库
+            file_obj = db.add_file_to_index(index_id, path)
+            new_files.append({
+                'path': file_obj.path,
+                'status': file_obj.status
+            })
+        
+        # 如果有新文件添加，启动后台处理线程
+        if new_files:
+            thread = threading.Thread(target=process_new_videos, args=(index_id, file_paths))
+            thread.start()
+        
+        return jsonify({'message': '文件添加成功', 'newFiles': new_files}), 200
+    except Exception as e:
+        return jsonify({'error': f'添加文件失败: {str(e)}'}), 500
+
+@app.route('/api/indexes/<index_id>/files/<path:file_path>', methods=['DELETE'])
+def remove_file_from_index(index_id, file_path):
+    """从索引中删除文件"""
+    try:
+        # 检查索引是否存在
+        index_obj = db.get_index_by_id(index_id)
+        if not index_obj:
+            return jsonify({'error': '索引不存在'}), 404
+        
+        # 删除文件
+        if not db.remove_file_from_index(index_id, file_path):
+            return jsonify({'error': '文件删除失败'}), 500
+        vs.delete_video(file_path, index_id)
+        return jsonify({'message': '文件删除成功'})
+    except Exception as e:
+        return jsonify({'error': f'删除文件失败: {str(e)}'}), 500
+
 @app.route('/api/indexes/<index_id>/search', methods=['POST'])
 def search_in_index(index_id):
     """在指定索引中搜索"""
@@ -168,6 +256,22 @@ def process_videos(index_id, index_name, video_files):
         # 更新索引状态为错误
         db.update_index_status(index_id, IndexStatus.ERROR)
         print(f"处理索引{index_name} 视频时出错: {str(e)}")
+
+def process_new_videos(index_id, video_files):
+    """后台处理新添加的视频文件"""
+    try:
+        # 添加视频到索引
+        vs.add_videos(video_files, index_id)
+        
+        # 更新文件状态
+        for video_file in video_files:
+            db.update_file_status(index_id, video_file, IndexStatus.COMPLETED)
+            
+    except Exception as e:
+        # 更新文件状态为错误
+        for video_file in video_files:
+            db.update_file_status(index_id, video_file, IndexStatus.ERROR)
+        print(f"处理索引{index_id} 新视频时出错: {str(e)}")
 
 def format_time(seconds):
     """将秒数格式化为时间字符串"""

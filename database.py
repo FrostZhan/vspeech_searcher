@@ -67,8 +67,8 @@ class Database:
         # 生成索引ID
         index_id = str(uuid.uuid4())
         
-        # 获取当前日期
-        create_date = datetime.now().strftime('%Y-%m-%d')
+        # 获取当前日期和时间
+        create_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         # 插入索引记录
         c.execute('''
@@ -209,6 +209,43 @@ class Database:
         
         # 再删除索引记录
         c.execute('DELETE FROM indexes WHERE id = ?', (index_id,))
+        
+        conn.commit()
+        rows_affected = c.rowcount
+        conn.close()
+        
+        return rows_affected > 0
+    
+    # 添加文件到索引
+    def add_file_to_index(self, index_id: str, file_path: str) -> File:
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+        
+        # 插入文件记录
+        c.execute('''
+            INSERT INTO files (index_id, path, status)
+            VALUES (?, ?, ?)
+        ''', (index_id, file_path, IndexStatus.PROCESSING))
+        
+        # 获取插入的文件ID
+        file_id = c.lastrowid
+        if file_id is None:
+            file_id = 0
+        
+        conn.commit()
+        conn.close()
+        
+        return File(file_id, index_id, file_path, IndexStatus.PROCESSING)
+    
+    # 从索引中删除文件
+    def remove_file_from_index(self, index_id: str, file_path: str) -> bool:
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+        
+        # 删除文件记录
+        c.execute('''
+            DELETE FROM files WHERE index_id = ? AND path = ?
+        ''', (index_id, file_path))
         
         conn.commit()
         rows_affected = c.rowcount

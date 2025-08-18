@@ -217,6 +217,13 @@ nav {
     margin-bottom: 10px;
 }
 
+.index-card .index-card-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    text-align: right;
+}
+
 .index-info .info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -237,6 +244,13 @@ nav {
 
 .index-info .value {
     color: #212529;
+}
+
+.index-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: right;
 }
 
 /* 表格样式 */
@@ -345,6 +359,54 @@ nav {
 
 .empty-state p {
     font-size: 1.1rem;
+}
+
+/* 视频列表样式 */
+.video-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.video-list-header h3 {
+    margin: 0;
+}
+
+/* 分页控件样式 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+    padding: 20px 0;
+}
+
+.pagination button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #6c757d;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.pagination button:hover {
+    background-color: #545b62;
+}
+
+.pagination button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.pagination #pageInfo {
+    font-size: 1rem;
+    color: #495057;
+    font-weight: 600;
 }
 
 /* 加载指示器样式 */
