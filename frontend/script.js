@@ -92,6 +92,7 @@ function showPage(pageName) {
 // 获取状态文本
 function getStatusText(status) {
     switch (status) {
+        case "waiting": return '待处理';
         case 'processing': return '处理中';
         case 'completed': return '已完成';
         case 'error': return '错误';

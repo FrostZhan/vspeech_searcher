@@ -170,6 +170,7 @@ def add_files_to_index(index_id):
             existing_file = next((f for f in index_obj.files if f.path == path), None)
             if existing_file:
                 # 如果文件已存在，跳过
+                print(f"文件已存在于索引中: {path}")
                 continue
             
             # 添加新文件到数据库
@@ -181,7 +182,7 @@ def add_files_to_index(index_id):
         
         # 如果有新文件添加，启动后台处理线程
         if new_files:
-            thread = threading.Thread(target=process_new_videos, args=(index_id, file_paths))
+            thread = threading.Thread(target=process_videos, args=(index_id, index_obj.name, file_paths))
             thread.start()
         
         return jsonify({'message': '文件添加成功', 'newFiles': new_files}), 200
@@ -198,9 +199,8 @@ def remove_file_from_index(index_id, file_path):
             return jsonify({'error': '索引不存在'}), 404
         
         # 删除文件
-        if not db.remove_file_from_index(index_id, file_path):
-            return jsonify({'error': '文件删除失败'}), 500
-        vs.delete_video(file_path, index_id)
+        db.remove_file_from_index(index_id, file_path)
+        vs.delete_video(index_id, file_path)
         return jsonify({'message': '文件删除成功'})
     except Exception as e:
         return jsonify({'error': f'删除文件失败: {str(e)}'}), 500
@@ -248,30 +248,13 @@ def process_videos(index_id, index_name, video_files):
     try:
         # 添加视频到索引
         vs.add_videos(video_files, index_id)
-        
-        # 更新索引状态
-        db.update_index_status(index_id, IndexStatus.COMPLETED)
-            
-    except Exception as e:
-        # 更新索引状态为错误
-        db.update_index_status(index_id, IndexStatus.ERROR)
-        print(f"处理索引{index_name} 视频时出错: {str(e)}")
 
-def process_new_videos(index_id, video_files):
-    """后台处理新添加的视频文件"""
-    try:
-        # 添加视频到索引
-        vs.add_videos(video_files, index_id)
-        
-        # 更新文件状态
-        for video_file in video_files:
-            db.update_file_status(index_id, video_file, IndexStatus.COMPLETED)
-            
     except Exception as e:
-        # 更新文件状态为错误
-        for video_file in video_files:
-            db.update_file_status(index_id, video_file, IndexStatus.ERROR)
-        print(f"处理索引{index_id} 新视频时出错: {str(e)}")
+
+        print(f"处理索引{index_name} 视频时出错: {str(e)}")
+    # 更新索引状态
+    db.update_index_status(index_id, IndexStatus.COMPLETED)
+
 
 def format_time(seconds):
     """将秒数格式化为时间字符串"""

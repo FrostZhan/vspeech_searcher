@@ -276,6 +276,11 @@ nav {
     background-color: #f8f9fa;
 }
 
+.status-waiting {
+    color: #2c07ffdd;
+    font-weight: 600;
+}
+
 .status-processing {
     color: #ffc107;
     font-weight: 600;

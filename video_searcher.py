@@ -9,12 +9,10 @@ from database import db, IndexStatus
 
 class VideoSpeechContentSearcher():
     chroma_client = None
-    database = None
     asr_model = None
     
     def __init__(self):
         self.chroma_client = chromadb.PersistentClient(path="chroma.db")
-        self.database = db
 
     def delete_database(self, index_id):
         self.chroma_client.delete_collection(name=index_id)
@@ -45,7 +43,7 @@ class VideoSpeechContentSearcher():
         Add a single video to the database.
         """
         try:
-            self.database.update_file_status(index_id, video_path, IndexStatus.PROCESSING)
+            db.update_file_status(index_id, video_path, IndexStatus.PROCESSING)
             print(f"Adding video: {video_path}")
             # Placeholder for video processing logic
             # Here you would extract audio and process it as needed
@@ -76,7 +74,6 @@ class VideoSpeechContentSearcher():
             # 更新文件状态为错误
             db.update_file_status(index_id, video_path, IndexStatus.ERROR)
             print(f"处理视频 {video_path} 时出错: {str(e)}")
-            raise
 
 
     def _add_emebedding(self, text_file, src_file, index_id):

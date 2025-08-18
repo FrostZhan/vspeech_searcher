@@ -21,6 +21,7 @@ class Index:
     files: List[File] = field(default_factory=list)
 
 class IndexStatus:
+    WAITING = "waiting"
     PROCESSING = "processing"
     COMPLETED = "completed"
     ERROR = "error"
@@ -39,7 +40,7 @@ class Database:
         c.execute('''
             CREATE TABLE IF NOT EXISTS indexes (
                 id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
+                name TEXT NOT NULL UNIQUE,
                 create_date TEXT NOT NULL,
                 status TEXT NOT NULL
             )
@@ -50,7 +51,7 @@ class Database:
             CREATE TABLE IF NOT EXISTS files (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 index_id TEXT NOT NULL,
-                path TEXT NOT NULL,
+                path TEXT NOT NULL UNIQUE,
                 status TEXT NOT NULL,
                 FOREIGN KEY (index_id) REFERENCES indexes (id)
             )
@@ -82,13 +83,13 @@ class Database:
             c.execute('''
                 INSERT INTO files (index_id, path, status)
                 VALUES (?, ?, ?)
-            ''', (index_id, file_path, IndexStatus.PROCESSING))
+            ''', (index_id, file_path, IndexStatus.WAITING))
             
             # 获取插入的文件ID
             file_id = c.lastrowid
             if file_id is None:
                 file_id = 0
-            files.append(File(file_id, index_id, file_path, IndexStatus.PROCESSING))
+            files.append(File(file_id, index_id, file_path, IndexStatus.WAITING))
         
         conn.commit()
         conn.close()
@@ -187,7 +188,6 @@ class Database:
     def update_index(self, index: Index) -> bool:
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
-        
         # 更新索引信息
         c.execute('''
             UPDATE indexes SET name = ?, status = ? WHERE id = ?
@@ -221,11 +221,16 @@ class Database:
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
         
+        # 更新索引状态
+        c.execute('''
+            UPDATE indexes SET status = ? WHERE id = ?
+        ''', (IndexStatus.PROCESSING, index_id))
+
         # 插入文件记录
         c.execute('''
             INSERT INTO files (index_id, path, status)
             VALUES (?, ?, ?)
-        ''', (index_id, file_path, IndexStatus.PROCESSING))
+        ''', (index_id, file_path, IndexStatus.WAITING))
         
         # 获取插入的文件ID
         file_id = c.lastrowid
@@ -235,7 +240,7 @@ class Database:
         conn.commit()
         conn.close()
         
-        return File(file_id, index_id, file_path, IndexStatus.PROCESSING)
+        return File(file_id, index_id, file_path, IndexStatus.WAITING)
     
     # 从索引中删除文件
     def remove_file_from_index(self, index_id: str, file_path: str) -> bool:
