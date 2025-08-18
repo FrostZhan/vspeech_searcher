@@ -92,12 +92,14 @@ class VideoSpeechContentSearcher():
             query_texts = ["search_query: " + query]
         if keyword is not None:
             keywords = keyword.split(",")
-            where_document = {
-                "$and": [
-                    {"$contains": keyword} for keyword in keywords
-                ]
-            }
-            # where_document = {"$contains": keyword}
+            if len(keywords) == 1:
+                where_document = {"$contains": keyword}
+            else:
+                where_document = {
+                    "$and": [
+                        {"$contains": keyword} for keyword in keywords
+                    ]
+                }
         if video_paths is not None:
             where = {"src_file": {"$in": video_paths}}
         results = collection.query(

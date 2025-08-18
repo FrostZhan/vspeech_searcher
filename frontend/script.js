@@ -109,6 +109,58 @@ async function handleFileSelect(event) {
     }
 }
 
+// 显示消息函数
+function showMessage(message, type) {
+    // 获取消息容器
+    const messageContainer = document.getElementById('messageContainer');
+    
+    // 移除之前的消息元素
+    const existingMessage = messageContainer.querySelector('.message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // 创建消息元素
+    const messageElement = document.createElement('div');
+    messageElement.className = `message message-${type}`;
+    messageElement.textContent = message;
+    
+    // 添加样式
+    messageElement.style.position = 'fixed';
+    messageElement.style.top = '20px';
+    messageElement.style.left = '50%';
+    messageElement.style.transform = 'translateX(-50%)';
+    messageElement.style.padding = '10px 20px';
+    messageElement.style.borderRadius = '4px';
+    messageElement.style.color = 'white';
+    messageElement.style.fontWeight = 'bold';
+    messageElement.style.zIndex = '1000';
+    messageElement.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+    messageElement.style.transition = 'opacity 0.3s ease';
+    
+    // 根据消息类型设置背景颜色
+    if (type === 'error') {
+        messageElement.style.backgroundColor = '#dc3545';
+    } else if (type === 'success') {
+        messageElement.style.backgroundColor = '#28a745';
+    } else {
+        messageElement.style.backgroundColor = '#007bff';
+    }
+    
+    // 添加到消息容器
+    messageContainer.appendChild(messageElement);
+    
+    // 3秒后自动移除消息
+    setTimeout(() => {
+        messageElement.style.opacity = '0';
+        setTimeout(() => {
+            if (messageElement.parentNode) {
+                messageElement.parentNode.removeChild(messageElement);
+            }
+        }, 300);
+    }, 3000);
+}
+
 // 更新文件列表显示
 function updateFileList() {
     const fileListContainer = document.getElementById('fileList');
@@ -213,12 +265,12 @@ async function createIndex(event) {
     const indexName = document.getElementById('indexName').value.trim();
     
     if (!indexName) {
-        alert('请输入索引名称');
+        showMessage('请输入索引名称', 'error');
         return;
     }
     
     if (selectedFiles.length === 0) {
-        alert('请选择至少一个视频文件');
+        showMessage('请选择至少一个视频文件', 'error');
         return;
     }
     
@@ -240,11 +292,11 @@ async function createIndex(event) {
             throw new Error(data.error || '请求失败');
         }
         
-        alert(`索引 "${indexName}" 创建成功！`);
+        showMessage(`索引 "${indexName}" 创建成功！`, 'success');
         currentIndex = data;
         showPage('indexDetail');
     } catch (error) {
-        alert(`创建索引失败: ${error.message}`);
+        showMessage(`创建索引失败: ${error.message}`, 'error');
     }
 }
 
@@ -339,12 +391,12 @@ async function performSearch(event) {
     
     // 文本搜索是必须填写的
     if (!query) {
-        alert('请输入搜索关键词');
+        showMessage('请输入搜索关键词', 'error');
         return;
     }
     
     if (!currentIndex) {
-        alert('请先选择一个索引');
+        showMessage('请先选择一个索引', 'error');
         return;
     }
     
@@ -369,8 +421,9 @@ async function performSearch(event) {
         });
         
         displaySearchResults(results);
+        showMessage('搜索完成', 'success');
     } catch (error) {
-        alert(`搜索失败: ${error.message}`);
+        showMessage(`搜索失败: ${error.message}`, 'error');
     }
 }
 

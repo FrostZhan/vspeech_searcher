@@ -327,6 +327,44 @@ nav {
     font-size: 1.1rem;
 }
 
+/* 必填项标识 */
+.required {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* 消息样式 */
+#messageContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    text-align: center;
+}
+
+.message {
+    display: inline-block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.message-error {
+    background-color: #dc3545;
+}
+
+.message-success {
+    background-color: #28a745;
+}
+
+.message-info {
+    background-color: #007bff;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .container {
