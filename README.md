@@ -47,24 +47,32 @@ embedding: https://huggingface.co/nomic-ai/nomic-embed-text-v2-moe-GGUF
 
 ## 运行后端服务
 
-### 方法一：直接运行（需要手动设置环境变量）
+- windows
+
 
 ```bash
-HF_ENDPOINT=https://hf-mirror.com python api.py
+# 虚拟环境
+.venv/Scripts/Activate.ps1
 ```
 
-### 方法二：使用启动脚本（推荐）
+```bash
+# 运行embedding模型
+llama-server -m models\nomic-embed-text-v2-moe.f16.gguf --embeddings
+```
 
 ```bash
-./start_api.sh
+# 运行后端
+python api.py
 ```
 
 后端服务将运行在 `http://localhost:5001`
 
 ## 运行前端界面
 
-1. 进入 frontend 目录
-2. 在浏览器中打开 `index.html` 文件，或者使用本地服务器运行
+```bash
+npm start
+```
+
 
 ## 使用说明
 

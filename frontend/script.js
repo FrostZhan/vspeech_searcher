@@ -733,9 +733,9 @@ function playVideoAtTime(filePath, startTime) {
     
     // 根据不同操作系统构建命令
     let command;
-    if (platform === 'win32') {
+    if (platform === 'win32' || platform === 'win64') {
         // Windows系统使用PotPlayer播放器
-        command = `"PotPlayerMini64.exe" "${filePath}" /seek=${seconds}`;
+        command = `PotPlayerMini64.exe ${filePath} /seek=${seconds}`;
     } else if (platform === 'darwin') {
         // macOS系统使用PotPlayer播放器（如果已安装）
         command = `open -a PotPlayer --args "${filePath}" /seek=${seconds}`;
@@ -748,7 +748,7 @@ function playVideoAtTime(filePath, startTime) {
     exec(command, (error, stdout, stderr) => {
         if (error) {
             console.error(`执行命令时出错: ${error}`);
-            alert(`无法播放视频文件: ${filePath}\n请确保已安装PotPlayer播放器`);
+            alert(`无法播放视频文件: ${filePath}\n请确保已安装PotPlayer播放器，错误： ${error}`);
             return;
         }
         if (stderr) {

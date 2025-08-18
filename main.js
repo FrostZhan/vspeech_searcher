@@ -37,6 +37,8 @@ function createWindow() {
     }
   })
 
+  // win.webContents.openDevTools();
+
   win.loadFile(path.join(__dirname, 'frontend', 'index.html'))
 }
 

@@ -250,7 +250,6 @@ def process_videos(index_id, index_name, video_files):
         vs.add_videos(video_files, index_id)
 
     except Exception as e:
-
         print(f"处理索引{index_name} 视频时出错: {str(e)}")
     # 更新索引状态
     db.update_index_status(index_id, IndexStatus.COMPLETED)

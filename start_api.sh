@@ -1,4 +1,7 @@
 #!/bin/bash
-# 设置环境变量并启动 API
-source .env
+
+
+
+llama-server -m models\nomic-embed-text-v2-moe.f16.gguf --embeddings
+.venv/Scripts/Activate.ps1
 python api.py
