@@ -9,51 +9,40 @@ from database import db, IndexStatus
 
 class VideoSpeechContentSearcher():
     chroma_client = None
-    current_database = None
-    current_database_name = None
+    database = None
     asr_model = None
-    current_index_id = None
-
+    
     def __init__(self):
         self.chroma_client = chromadb.PersistentClient(path="chroma.db")
-
-    
-    def use_database(self, name):
-        self.current_database = self.chroma_client.get_or_create_collection(name=name, embedding_function=MyEmbeddingFunction())
-        self.current_database_name = name
-
+        self.database = db
 
     def delete_database(self, name):
         self.chroma_client.delete_collection(name=name)
 
 
-    def add_videos(self, video_paths, index_id=None):
+    def add_videos(self, video_paths, index_id):
         """
         Add videos to the database.
         """
-        self.current_index_id = index_id
+        if index_id == "":
+            raise ValueError("Index ID cannot be empty.")
+
         if self.asr_model is None:
             print("Initializing ASR model...")
             self.asr_model = ASR()
             print("ASR model initialized.")
         for video_path in video_paths:
-            self._add_video(video_path)
+            self._add_video(video_path, index_id)
             print("-" * 50)
         if self.asr_model is not None:
             del self.asr_model
     
-    def _add_video(self, video_path):
+    def _add_video(self, video_path, index_id):
         """
         Add a single video to the database.
         """
         try:
-            # 更新文件状态为处理中
-            if self.current_index_id:
-                db.update_file_status(self.current_index_id, video_path, IndexStatus.PROCESSING)
-
-            if self.asr_model is None:
-                self.asr_model = ASR()
-
+            self.database.update_file_status(index_id, video_path, IndexStatus.PROCESSING)
             print(f"Adding video: {video_path}")
             # Placeholder for video processing logic
             # Here you would extract audio and process it as needed
@@ -72,35 +61,44 @@ class VideoSpeechContentSearcher():
             print(f"ASR result saved to: {text_path}")
 
             # Add the processed audio text to the database
-            print(f"Adding text to database {self.current_database_name}")
-            self._add_emebedding(text_path, src_file=video_path)
-            print(f"Video {video_path} added to database {self.current_database_name}")
+            print(f"Adding text to database {index_id}")
+            self._add_emebedding(text_path, src_file=video_path, index_id=index_id)
+            print(f"Video {video_path} added to database {index_id}")
 
             # 更新文件状态为已完成
-            if self.current_index_id:
-                db.update_file_status(self.current_index_id, video_path, IndexStatus.COMPLETED)
+            db.update_file_status(index_id, video_path, IndexStatus.COMPLETED)
 
             delete_temp_folder(temp_dir)
         except Exception as e:
             # 更新文件状态为错误
-            if self.current_index_id:
-                db.update_file_status(self.current_index_id, video_path, IndexStatus.ERROR)
+            db.update_file_status(index_id, video_path, IndexStatus.ERROR)
             print(f"处理视频 {video_path} 时出错: {str(e)}")
             raise
 
 
-    def _add_emebedding(self, text_file, src_file=""):
+    def _add_emebedding(self, text_file, src_file, index_id):
+        collection = self.chroma_client.get_or_create_collection(name=index_id, embedding_function=MyEmbeddingFunction())
         ids, documents, metadatas = preprocess(text_file, src_file) 
-        self.current_database.add(
+        collection.add(
             ids=ids,
             documents=documents,
             metadatas=metadatas
         )
 
-    def search_content(self, query):
-        results = self.current_database.query(
-            query_texts=["search_query: " + query],
-            n_results=5
+    def search_content(self, index_id, n_results=10, query=None, video_paths=None, keyword=None):
+        collection = self.chroma_client.get_collection(name=index_id, embedding_function=MyEmbeddingFunction())
+        query_texts, where, where_document = None, None, None
+        if query is not None:
+            query_texts = ["search_query: " + query]
+        if keyword is not None:
+            where_document = {"$contains": "search string"}
+        if video_paths is not None:
+            where = {"src_file": {"$in": video_paths}}
+        results = collection.query(
+            query_texts=query_texts,
+            n_results=n_results,
+            where=where,
+            where_document=where_document
         )
         documents, metadatas = results['documents'][0], results['metadatas'][0]
         return documents, metadatas

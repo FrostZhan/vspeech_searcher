@@ -53,7 +53,7 @@ ipcMain.handle('open-file-dialog', async (event) => {
 
 app.whenReady().then(() => {
   // 启动后端服务
-  startBackend()
+  // startBackend()
   
   createWindow()
 

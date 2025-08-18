@@ -17,9 +17,6 @@ except ImportError:
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
 
-# 存储搜索器实例
-searchers = {}
-
 # 初始化搜索器
 vs = VideoSpeechContentSearcher()
 
@@ -137,16 +134,11 @@ def search_in_index(index_id):
             return jsonify({'error': '无效的JSON数据'}), 400
             
         query = data.get('query')
-        
-        if not query:
-            return jsonify({'error': '搜索关键词不能为空'}), 400
-        
-        # 使用搜索器执行搜索
-        if index_id not in searchers:
-            return jsonify({'error': '索引尚未准备好'}), 400
-        
-        searcher = searchers[index_id]
-        documents, metadatas = searcher.search_content(query)
+        n_results = data.get('nResults', 10)
+        video_paths = data.get('videoPaths', None)
+        keyword = data.get('keyword', None)
+
+        documents, metadatas = vs.search_content(index_id, n_results=n_results, query=query, video_paths=video_paths, keyword=keyword)
         
         # 格式化搜索结果
         results = []
@@ -165,10 +157,6 @@ def search_in_index(index_id):
 def process_videos(index_id, index_name, video_files):
     """后台处理视频文件"""
     try:
-        # 创建或使用数据库
-        vs.use_database(index_name)
-        searchers[index_id] = vs
-        
         # 添加视频到索引
         vs.add_videos(video_files, index_id)
         
@@ -178,7 +166,7 @@ def process_videos(index_id, index_name, video_files):
     except Exception as e:
         # 更新索引状态为错误
         db.update_index_status(index_id, IndexStatus.ERROR)
-        print(f"处理视频时出错: {str(e)}")
+        print(f"处理索引{index_name} 视频时出错: {str(e)}")
 
 def format_time(seconds):
     """将秒数格式化为时间字符串"""

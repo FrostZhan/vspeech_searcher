@@ -23,12 +23,14 @@
       {
         "from": "dist/",
         "to": "app/dist/",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ]
   },
   "devDependencies": {
-    "electron": "28.0.0",
+    "electron": "^28.0.0",
     "electron-builder": "^24.0.0"
   }
 }

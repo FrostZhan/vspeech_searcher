@@ -5,6 +5,7 @@ from llama_cpp import Llama
 import time
 
 
+from langchain_community.embeddings import LlamaCppEmbeddings
 
 
 if __name__ == "__main__":
@@ -21,7 +22,14 @@ if __name__ == "__main__":
         # seed=1337, # Uncomment to set a specific seed
         # n_ctx=2048, # Uncomment to increase the context window
     )
-    output = llm.embed(["Q: Name the planets in the solar system? A: ", "xxxx","A: xxx jijdisnj", "xxxxx", "xxx", "xxx"]) 
-    print(len(output))
-    # print(output)
+    # output = llm.embed(["csdsdcsdcsc", "xxxx","A: xxx jijdisnj", "xxxxx", "xxx", "xxx"]) 
+    # print(len(output))
+    # print(output[0][0])
     # time.sleep(50)
+
+
+    llama = LlamaCppEmbeddings(model_path="./models/nomic-embed-text-v2-moe.f16.gguf", n_batch=1)
+    output = llama.embed_documents(["chrthtrtnrt g ertgerg", "xxxx","A: xxx jijdisnj", "xxxxx", "xxx", "xxx"])
+    print(output[0][0])
+
+

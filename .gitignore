@@ -5,6 +5,10 @@ release
 dist
 models
 build
+node_modules
+Pipfile
+package-lock.json
+tmp
 
 chroma*
 

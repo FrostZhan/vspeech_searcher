@@ -12,28 +12,24 @@ class MyEmbeddingFunction(EmbeddingFunction):
     model_id = "nomic-ai/nomic-embed-text-v2-moe-GGUF"
     model_file = "nomic-embed-text-v2-moe.f16.gguf"
 
-
-
     def __init__(self):
         # 下载模型文件到当前文件地址的models目录下
         model_path = os.path.join("models", self.model_file)
         if not os.path.exists(model_path):
             hf_hub_download(repo_id=self.model_id, filename=self.model_file, local_dir="models")
-        self.model = Llama(
-            model_path=model_path,
-            n_batch=1,
-            embedding=True,
-            n_gpu_layers=-1, # Uncomment to use GPU acceleration
-            # seed=1337, # Uncomment to set a specific seed
-            # n_ctx=2048, # Uncomment to increase the context window
-        )
+        # self.model = Llama(
+        #     model_path=model_path,
+        #     n_batch=1,
+        #     embedding=True,
+        #     n_gpu_layers=-1, # Uncomment to use GPU acceleration
+        # )
 
 
     def __call__(self, input: Documents) -> Embeddings:
         # embed the documents somehow
         # embed = self.model.embed_documents(input)
-        # return embed(input)
-        return self.model.embed(input)
+        return embed(input)
+        # return self.model.embed(input)
 
 
 

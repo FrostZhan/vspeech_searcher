@@ -139,7 +139,7 @@ function updateFileList() {
 }
 
 // API 调用函数
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'http://localhost:5001/api';
 
 async function apiCall(endpoint, options = {}) {
     const url = `${API_BASE}${endpoint}`;
