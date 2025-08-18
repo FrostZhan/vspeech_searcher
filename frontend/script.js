@@ -72,7 +72,8 @@ function showPage(pageName) {
     } else if (pageName === 'indexDetail' && currentIndex) {
         loadIndexDetail(currentIndex);
     } else if (pageName === 'search' && currentIndex) {
-        // 可以在这里添加搜索页面的初始化逻辑
+        // 初始化搜索页面
+        initializeSearchPage();
     }
 }
 
@@ -297,14 +298,45 @@ async function loadIndexDetail(index) {
     }
 }
 
+// 初始化搜索页面
+function initializeSearchPage() {
+    // 清空搜索表单
+    document.getElementById('searchQuery').value = '';
+    document.getElementById('searchKeyword').value = '';
+    document.getElementById('searchLimit').value = '10';
+    
+    // 填充视频选择下拉框
+    const videoSelect = document.getElementById('searchVideos');
+    videoSelect.innerHTML = '';
+    
+    if (currentIndex && currentIndex.files) {
+        currentIndex.files.forEach(file => {
+            const option = document.createElement('option');
+            // 只显示文件名，不显示完整路径
+            const fileName = file.path.split('/').pop().split('\\').pop();
+            option.value = file.path;
+            option.textContent = fileName;
+            videoSelect.appendChild(option);
+        });
+    }
+}
+
 // 执行搜索
 async function performSearch(event) {
     event.preventDefault();
     
     const query = document.getElementById('searchQuery').value.trim();
+    const keyword = document.getElementById('searchKeyword').value.trim();
+    const limit = parseInt(document.getElementById('searchLimit').value) || 10;
     
-    if (!query) {
-        alert('请输入搜索关键词');
+    // 获取选中的视频路径
+    const videoSelect = document.getElementById('searchVideos');
+    const selectedOptions = Array.from(videoSelect.selectedOptions);
+    const videoPaths = selectedOptions.map(option => option.value);
+    
+    // 至少需要提供文本搜索或关键字搜索之一
+    if (!query && !keyword) {
+        alert('请输入搜索关键词或关键字');
         return;
     }
     
@@ -313,10 +345,27 @@ async function performSearch(event) {
         return;
     }
     
+    // 构造搜索参数
+    const searchParams = {
+        nResults: limit
+    };
+    
+    if (query) {
+        searchParams.query = query;
+    }
+    
+    if (keyword) {
+        searchParams.keyword = keyword;
+    }
+    
+    if (videoPaths.length > 0) {
+        searchParams.videoPaths = videoPaths;
+    }
+    
     try {
         const results = await apiCall(`/indexes/${currentIndex.id}/search`, {
             method: 'POST',
-            body: JSON.stringify({ query })
+            body: JSON.stringify(searchParams)
         });
         
         displaySearchResults(results);

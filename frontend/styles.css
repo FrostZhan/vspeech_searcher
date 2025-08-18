@@ -284,16 +284,31 @@ nav {
 }
 
 .search-form .form-group {
-    display: flex;
-    gap: 10px;
+    margin-bottom: 20px;
 }
 
-.search-form input {
-    flex: 1;
+.search-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.search-form input, .search-form select {
+    width: 100%;
     padding: 12px;
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 1rem;
+}
+
+.search-form select {
+    height: auto;
+    min-height: 40px;
+}
+
+.search-form select[multiple] {
+    height: 120px;
 }
 
 /* 搜索结果样式 */
