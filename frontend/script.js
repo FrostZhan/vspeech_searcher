@@ -975,13 +975,15 @@ function updateVideoDetailPagination() {
     nextButton.disabled = currentVideoPage === currentVideoTotalPages;
 }
 
-// 添加视频详情页面的分页按钮事件处理
+// 添加视频详情页面的事件处理
 document.addEventListener('DOMContentLoaded', function() {
+    // 分页按钮事件处理
     const videoDetailPrevPage = document.getElementById('videoDetailPrevPage');
     const videoDetailNextPage = document.getElementById('videoDetailNextPage');
     
     if (videoDetailPrevPage) {
         videoDetailPrevPage.addEventListener('click', function() {
+            console.log('点击上一页按钮');  // 调试信息
             if (currentVideoPage > 1) {
                 loadVideoDetail(currentVideoPage - 1);
             }
@@ -990,16 +992,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (videoDetailNextPage) {
         videoDetailNextPage.addEventListener('click', function() {
+            console.log('点击下一页按钮');  // 调试信息
+            console.log('当前页:', currentVideoPage);  // 调试信息
+            console.log('总页数:', currentVideoTotalPages);  // 调试信息
             if (currentVideoPage < currentVideoTotalPages) {
                 loadVideoDetail(currentVideoPage + 1);
             }
         });
     }
-});
-
-// 添加返回索引详情按钮事件处理
-document.getElementById('backToIndexDetailFromVideo').addEventListener('click', function() {
-    showPage('indexDetail');
+    
+    // 返回索引详情按钮事件处理
+    const backToIndexDetailFromVideo = document.getElementById('backToIndexDetailFromVideo');
+    if (backToIndexDetailFromVideo) {
+        backToIndexDetailFromVideo.addEventListener('click', function() {
+            console.log('点击返回索引详情按钮');  // 调试信息
+            showPage('indexDetail');
+        });
+    }
 });
 
 function playVideoAtTime(filePath, startTime) {
