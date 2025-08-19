@@ -243,28 +243,28 @@ def search_in_index(index_id):
     except Exception as e:
         return jsonify({'error': f'搜索失败: {str(e)}'}), 500
 
-@app.route('/api/video/details', methods=['GET'])
-def get_video_details():
+@app.route('/api/indexes/<index_id>/video/details', methods=['GET'])
+def get_video_details(index_id):
     """获取视频所有索引文本详情"""
     try:
         file_path = request.args.get('filePath')
         page = int(request.args.get('page', 1))
-        per_page = 10  # 每页显示10条记录
+        page_size = int(request.args.get('pageSize', 10))
         
         if not file_path:
             return jsonify({'error': '文件路径不能为空'}), 400
         
-        # 获取视频所属的索引ID
-        index_id = db.get_index_id_by_file_path(file_path)
-        if not index_id:
-            return jsonify({'error': '文件不属于任何索引'}), 404
+        # 检查索引是否存在
+        index_obj = db.get_index_by_id(index_id)
+        if not index_obj:
+            return jsonify({'error': '索引不存在'}), 404
         
         # 从搜索器中获取视频的所有索引文本
         all_docs, all_metas = vs.get_all_documents_for_video(index_id, file_path)
         
         # 分页处理
-        start_idx = (page - 1) * per_page
-        end_idx = start_idx + per_page
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
         paginated_docs = all_docs[start_idx:end_idx]
         paginated_metas = all_metas[start_idx:end_idx]
         
@@ -273,8 +273,8 @@ def get_video_details():
         for doc, meta in zip(paginated_docs, paginated_metas):
             doc = doc.replace("search_document: ", "")
             results.append({
-                'start_time': format_time(meta.get('start', 0)),
-                'end_time': format_time(meta.get('end', 0)),
+                'start': meta.get('start', 0),
+                'end': meta.get('end', 0),
                 'text': doc
             })
         
@@ -282,8 +282,8 @@ def get_video_details():
             'results': results,
             'total': len(all_docs),
             'page': page,
-            'per_page': per_page,
-            'total_pages': (len(all_docs) + per_page - 1) // per_page
+            'page_size': page_size,
+            'total_pages': (len(all_docs) + page_size - 1) // page_size
         })
     except Exception as e:
         return jsonify({'error': f'获取视频详情失败: {str(e)}'}), 500
