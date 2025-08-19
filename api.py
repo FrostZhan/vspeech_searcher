@@ -243,13 +243,21 @@ def search_in_index(index_id):
     except Exception as e:
         return jsonify({'error': f'搜索失败: {str(e)}'}), 500
 
-@app.route('/api/indexes/<index_id>/video/details', methods=['GET'])
+@app.route('/api/indexes/<index_id>/video/details', methods=['POST'])
 def get_video_details(index_id):
     """获取视频所有索引文本详情"""
     try:
-        file_path = request.args.get('filePath')
-        page = int(request.args.get('page', 1))
-        page_size = int(request.args.get('pageSize', 10))
+        if not request.is_json:
+            return jsonify({'error': '请求必须为JSON格式'}), 400
+            
+        data = request.get_json()
+        if not data or not isinstance(data, dict):
+            return jsonify({'error': '无效的JSON数据'}), 400
+            
+        file_path = data.get('filePath')
+        page = int(data.get('page', 1))
+        page_size = int(data.get('pageSize', 10))
+        print(f"index: {index_id}, file_path: {file_path}, page: {page}, page_size: {page_size}")
         
         if not file_path:
             return jsonify({'error': '文件路径不能为空'}), 400

@@ -462,11 +462,9 @@ async function loadIndexDetail(index) {
         // 如果有文件数据，则显示文件列表
         if (indexDetail.files && indexDetail.files.length > 0) {
             indexDetail.files.forEach(file => {
-                // 只显示文件名，不显示完整路径
-                const fileName = file.path.split('/').pop().split('\\').pop();
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${fileName}</td>
+                    <td>${file.path}</td>
                     <td class="status-${file.status}">${getStatusText(file.status)}</td>
                     <td>
                         <button class="btn-secondary view-details-btn" data-path="${file.path}">查看</button>
@@ -536,10 +534,8 @@ function initializeSearchPage() {
         
         completedFiles.forEach(file => {
             const option = document.createElement('option');
-            // 只显示文件名，不显示完整路径
-            const fileName = file.path.split('/').pop().split('\\').pop();
             option.value = file.path;
-            option.textContent = fileName;
+            option.textContent = file.path;
             videoSelect.appendChild(option);
         });
     }
@@ -707,11 +703,9 @@ function displaySearchResults(results) {
     resultsBody.innerHTML = '';
     
     results.forEach(result => {
-        // 只显示文件名，不显示完整路径
-        const fileName = result.videoPath.split('/').pop().split('\\').pop();
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${fileName}</td>
+            <td>${result.videoPath}</td>
             <td>${result.startTime}</td>
             <td>${result.text}</td>
             <td><button class="btn-secondary play-video-btn" data-path="${result.videoPath}" data-time="${result.startTime}">播放</button></td>
@@ -742,16 +736,34 @@ function loadVideoDetails(filePath, page) {
     if (!currentIndex) return;
     
     // 构造API端点
-    const endpoint = `/api/indexes/${currentIndex.id}/video/details`;
-    const params = new URLSearchParams({
+    const endpoint = `/indexes/${currentIndex.id}/video/details`;
+    
+    // 使用完整的API基础URL
+    const url = `${API_BASE}${endpoint}`;
+    
+    // 构造请求参数
+    const params = {
         filePath: filePath,
         page: page,
         pageSize: 10
-    });
+    };
     
-    fetch(`${endpoint}?${params}`)
-        .then(response => response.json())
+    console.log('请求URL:', url);  // 调试信息
+    console.log('请求参数:', params);  // 调试信息
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params)
+    })
+        .then(response => {
+            console.log('响应状态:', response.status);  // 调试信息
+            return response.json();
+        })
         .then(data => {
+            console.log('响应数据:', data);  // 调试信息
             const tbody = document.getElementById('detailResultsBody');
             tbody.innerHTML = '';
             
