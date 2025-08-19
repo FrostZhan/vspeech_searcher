@@ -258,5 +258,42 @@ class Database:
         
         return rows_affected > 0
 
+    def get_index_id_by_file_path(self, file_path: str) -> Optional[str]:
+        """根据文件路径获取所属索引ID"""
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+        
+        # 查询文件所属的索引ID
+        c.execute('''
+            SELECT index_id FROM files WHERE path = ?
+        ''', (file_path,))
+        
+        result = c.fetchone()
+        conn.close()
+        
+        return result[0] if result else None
+
+    def get_files_by_index(self, index_id: str) -> List[dict]:
+        """根据索引ID获取所有文件信息"""
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+        
+        # 查询该索引下的所有文件
+        c.execute('''
+            SELECT id, path, status FROM files WHERE index_id = ?
+        ''', (index_id,))
+        
+        files = []
+        for row in c.fetchall():
+            file_id, path, status = row
+            files.append({
+                'id': file_id,
+                'file_path': path,
+                'status': status
+            })
+        
+        conn.close()
+        return files
+
 # 全局数据库实例
 db = Database()

@@ -721,6 +721,49 @@ function displaySearchResults(results) {
 }
 
 // 播放视频并定位到指定时间
+// 显示视频索引详情
+function showVideoDetails(filePath) {
+    document.getElementById('detailVideoPath').textContent = filePath;
+    document.getElementById('detailModal').style.display = 'block';
+    loadVideoDetails(filePath, 1);
+}
+
+// 加载视频索引详情
+function loadVideoDetails(filePath, page) {
+    fetch(`/api/video/details?filePath=${encodeURIComponent(filePath)}&page=${page}`)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('detailResultsBody');
+            tbody.innerHTML = '';
+            
+            data.results.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${formatTime(item.start_time)}</td>
+                    <td>${formatTime(item.end_time)}</td>
+                    <td>${item.text}</td>
+                    <td><button class="btn-secondary" data-time="${item.start_time}">播放</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // 设置分页信息
+            document.getElementById('detailPageInfo').textContent = `第${page}页`;
+            
+            // 添加播放按钮事件
+            tbody.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    playVideoAtTime(filePath, this.getAttribute('data-time'));
+                });
+            });
+        });
+}
+
+// 关闭详情弹窗
+document.querySelector('.close-btn').addEventListener('click', function() {
+    document.getElementById('detailModal').style.display = 'none';
+});
+
 function playVideoAtTime(filePath, startTime) {
     // 这里需要根据不同的操作系统和视频播放器来实现
     // 由于Electron的shell.openPath不支持传递参数，我们需要使用child_process来执行命令

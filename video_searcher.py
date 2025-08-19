@@ -111,6 +111,37 @@ class VideoSpeechContentSearcher():
         documents, metadatas = results['documents'][0], results['metadatas'][0]
         return documents, metadatas
 
+    def get_content(self, index_id, limit=100, offset=0, video_path=None):
+        where = None
+        if video_path is not None:
+            where = {"src_file": video_path}
+            
+        collection = self.chroma_client.get_collection(name=index_id, embedding_function=MyEmbeddingFunction())
+        results = collection.get(limit=limit, offset=offset, where=where)
+        documents, metadatas = results['documents'][0], results['metadatas'][0]
+        return documents, metadatas
+
+    def get_all_documents_for_video(self, index_id, video_path):
+        """获取视频的所有索引文本"""
+        collection = self.chroma_client.get_collection(name=index_id, embedding_function=MyEmbeddingFunction())
+        
+        # 获取所有匹配的文档
+        results = collection.get(where={"src_file": video_path})
+        
+        # 按起始时间排序
+        documents = results['documents']
+        metadatas = results['metadatas']
+        
+        # 将文档和元数据按起始时间排序
+        combined = list(zip(documents, metadatas))
+        combined.sort(key=lambda x: x[1]['start'])
+        
+        # 解压排序后的结果
+        sorted_docs = [doc for doc, meta in combined]
+        sorted_metas = [meta for doc, meta in combined]
+        
+        return sorted_docs, sorted_metas
+
 
     def user_query(self):
         """
