@@ -977,9 +977,14 @@ function updateVideoDetailPagination() {
 
 // 添加视频详情页面的事件处理
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('开始绑定视频详情页面事件');  // 调试信息
+    
     // 分页按钮事件处理
     const videoDetailPrevPage = document.getElementById('videoDetailPrevPage');
     const videoDetailNextPage = document.getElementById('videoDetailNextPage');
+    
+    console.log('上一页按钮元素:', videoDetailPrevPage);  // 调试信息
+    console.log('下一页按钮元素:', videoDetailNextPage);  // 调试信息
     
     if (videoDetailPrevPage) {
         videoDetailPrevPage.addEventListener('click', function() {
@@ -1003,12 +1008,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 返回索引详情按钮事件处理
     const backToIndexDetailFromVideo = document.getElementById('backToIndexDetailFromVideo');
+    console.log('返回索引详情按钮元素:', backToIndexDetailFromVideo);  // 调试信息
+    
     if (backToIndexDetailFromVideo) {
         backToIndexDetailFromVideo.addEventListener('click', function() {
             console.log('点击返回索引详情按钮');  // 调试信息
             showPage('indexDetail');
         });
+    } else {
+        console.log('未找到返回索引详情按钮元素');  // 调试信息
     }
+    
+    console.log('视频详情页面事件绑定完成');  // 调试信息
 });
 
 function playVideoAtTime(filePath, startTime) {
