@@ -754,89 +754,6 @@ function displaySearchResults(results) {
     });
 }
 
-// 播放视频并定位到指定时间
-// 显示视频索引详情
-function showVideoDetails(filePath) {
-    document.getElementById('detailVideoPath').textContent = filePath;
-    document.getElementById('detailModal').style.display = 'block';
-    loadVideoDetails(filePath, 1);
-}
-
-// 加载视频索引详情
-function loadVideoDetails(filePath, page) {
-    if (!currentIndex) return;
-    
-    // 构造API端点
-    const endpoint = `/indexes/${currentIndex.id}/video/details`;
-    
-    // 使用完整的API基础URL
-    const url = `${API_BASE}${endpoint}`;
-    
-    // 构造请求参数
-    const params = {
-        filePath: filePath,
-        page: page,
-        pageSize: 10
-    };
-    
-    console.log('请求URL:', url);  // 调试信息
-    console.log('请求参数:', params);  // 调试信息
-    
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params)
-    })
-        .then(response => {
-            console.log('响应状态:', response.status);  // 调试信息
-            return response.json();
-        })
-        .then(data => {
-            console.log('响应数据:', data);  // 调试信息
-            const tbody = document.getElementById('detailResultsBody');
-            tbody.innerHTML = '';
-            
-            // 显示结果
-            if (data.results && data.results.length > 0) {
-                data.results.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${formatTime(item.start)}</td>
-                        <td>${formatTime(item.end)}</td>
-                        <td>${item.text}</td>
-                        <td><button class="btn-secondary play-btn" data-time="${item.start}">播放</button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-                
-                // 添加播放按钮事件
-                tbody.querySelectorAll('.play-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        playVideoAtTime(filePath, this.getAttribute('data-time'));
-                    });
-                });
-            } else {
-                // 如果没有结果，显示提示信息
-                const tr = document.createElement('tr');
-                tr.innerHTML = '<td colspan="4" class="empty-state">暂无索引数据</td>';
-                tbody.appendChild(tr);
-            }
-            
-            // 设置分页信息
-            document.getElementById('detailPageInfo').textContent = `第${page}页`;
-            
-            // 保存当前页面信息用于分页
-            document.getElementById('detailModal').setAttribute('data-current-page', page);
-            document.getElementById('detailModal').setAttribute('data-file-path', filePath);
-        })
-        .catch(error => {
-            console.error('加载视频详情失败:', error);
-            const tbody = document.getElementById('detailResultsBody');
-            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">加载数据失败</td></tr>';
-        });
-}
 
 // 格式化时间显示
 function formatTime(seconds) {
@@ -844,37 +761,12 @@ function formatTime(seconds) {
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
     
-    if (hours > 0) {
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    } else {
-        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
 }
 
-// 关闭详情弹窗
-document.querySelector('.close-btn').addEventListener('click', function() {
-    document.getElementById('detailModal').style.display = 'none';
-});
 
-// 为详情弹窗的分页按钮添加事件处理
-document.getElementById('detailPrevPage').addEventListener('click', function() {
-    const modal = document.getElementById('detailModal');
-    const currentPage = parseInt(modal.getAttribute('data-current-page') || '1');
-    const filePath = modal.getAttribute('data-file-path');
-    
-    if (currentPage > 1) {
-        loadVideoDetails(filePath, currentPage - 1);
-    }
-});
-
-document.getElementById('detailNextPage').addEventListener('click', function() {
-    const modal = document.getElementById('detailModal');
-    const currentPage = parseInt(modal.getAttribute('data-current-page') || '1');
-    const filePath = modal.getAttribute('data-file-path');
-    
-    // 假设总页数大于当前页数，实际应用中可能需要从API获取总页数
-    loadVideoDetails(filePath, currentPage + 1);
-});
 
 // 加载视频详情
 async function loadVideoDetail(page) {
@@ -917,7 +809,7 @@ async function loadVideoDetail(page) {
                     <td>${formatTime(item.start)}</td>
                     <td>${formatTime(item.end)}</td>
                     <td>${item.text}</td>
-                    <td><button class="btn-secondary play-btn" data-time="${item.start}">播放</button></td>
+                    <td><button class="btn-secondary play-btn" data-time="${formatTime(item.start)}">播放</button></td>
                 `;
                 resultsBody.appendChild(tr);
             });
