@@ -189,39 +189,51 @@
                     </div>
                 </div>
                 
-                <!-- 索引详情弹窗 -->
-                <div id="detailModal" class="modal" style="display: none;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3>视频索引详情</h3>
-                            <span class="close-btn">&times;</span>
-                        </div>
-                        <div class="modal-body">
-                            <div class="detail-info">
-                                <h4>视频文件: <span id="detailVideoPath"></span></h4>
-                            </div>
-                            <div class="detail-results">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>起始时间</th>
-                                            <th>结束时间</th>
-                                            <th>文本内容</th>
-                                            <th>操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="detailResultsBody">
-                                        <!-- 详情内容将通过JavaScript动态生成 -->
-                                    </tbody>
-                                </table>
-                                <div class="pagination">
-                                    <button id="detailPrevPage" class="btn-secondary">上一页</button>
-                                    <span id="detailPageInfo">第1页</span>
-                                    <button id="detailNextPage" class="btn-secondary">下一页</button>
-                                </div>
-                            </div>
-                        </div>
+            </div>
+            
+            <!-- 视频详情页面 -->
+            <div id="videoDetailPage" class="page">
+                <div class="page-header">
+                    <button id="backToIndexDetailFromVideo" class="btn-secondary">返回索引详情</button>
+                    <h2>视频索引详情</h2>
+                </div>
+                <div class="index-name-display">
+                    <p>当前索引: <span id="currentVideoIndexName"></span></p>
+                </div>
+                <div class="video-name-display">
+                    <p>视频文件: <span id="currentVideoPath"></span></p>
+                </div>
+                
+                <div id="videoDetailResults" class="search-results">
+                    <h3>索引文本列表</h3>
+                    <!-- 搜索结果加载指示器 -->
+                    <div id="videoDetailLoadingIndicator" class="search-loading-indicator" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>加载中...</p>
                     </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>起始时间</th>
+                                <th>结束时间</th>
+                                <th>文本内容</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="videoDetailResultsBody">
+                            <!-- 搜索结果将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                    <div id="videoDetailNoResults" class="empty-state" style="display: none;">
+                        <p>暂无索引数据</p>
+                    </div>
+                </div>
+                
+                <!-- 分页控件 -->
+                <div id="videoDetailPagination" class="pagination" style="display: none;">
+                    <button id="videoDetailPrevPage" class="btn-secondary">上一页</button>
+                    <span id="videoDetailPageInfo"></span>
+                    <button id="videoDetailNextPage" class="btn-secondary">下一页</button>
                 </div>
             </div>
         </main>

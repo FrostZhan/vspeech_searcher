@@ -3,13 +3,19 @@ const pages = {
     indexManager: document.getElementById('indexManagerPage'),
     createIndex: document.getElementById('createIndexPage'),
     indexDetail: document.getElementById('indexDetailPage'),
-    search: document.getElementById('searchPage')
+    search: document.getElementById('searchPage'),
+    videoDetail: document.getElementById('videoDetailPage')
 };
 
 const navButtons = {
     indexManager: document.getElementById('indexManagerBtn'),
     search: document.getElementById('searchBtn')
 };
+
+// 视频详情分页相关变量
+let currentVideoPath = null;
+let currentVideoPage = 1;
+let currentVideoTotalPages = 0;
 
 // 当前状态
 let currentIndex = null;
@@ -70,7 +76,7 @@ function showPage(pageName) {
         btn.classList.remove('active');
     });
     
-    if (pageName === 'indexManager' || pageName === 'createIndex' || pageName === 'indexDetail') {
+    if (pageName === 'indexManager' || pageName === 'createIndex' || pageName === 'indexDetail' || pageName === 'videoDetail') {
         navButtons.indexManager.classList.add('active');
     } else if (pageName === 'search') {
         navButtons.search.classList.add('active');
@@ -86,7 +92,28 @@ function showPage(pageName) {
     } else if (pageName === 'search' && currentIndex) {
         // 初始化搜索页面
         initializeSearchPage();
+    } else if (pageName === 'videoDetail' && currentIndex && currentVideoPath) {
+        // 初始化视频详情页面
+        initializeVideoDetailPage();
     }
+}
+
+// 初始化视频详情页面
+function initializeVideoDetailPage() {
+    // 显示当前索引名称
+    const indexNameElement = document.getElementById('currentVideoIndexName');
+    if (indexNameElement && currentIndex) {
+        indexNameElement.textContent = currentIndex.name;
+    }
+    
+    // 显示当前视频路径
+    const videoPathElement = document.getElementById('currentVideoPath');
+    if (videoPathElement && currentVideoPath) {
+        videoPathElement.textContent = currentVideoPath;
+    }
+    
+    // 加载视频详情
+    loadVideoDetail(currentVideoPage);
 }
 
 // 获取状态文本
@@ -479,7 +506,11 @@ async function loadIndexDetail(index) {
             document.querySelectorAll('.view-details-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const filePath = this.getAttribute('data-path');
-                    showVideoDetails(filePath);
+                    // 设置当前视频路径和页面
+                    currentVideoPath = filePath;
+                    currentVideoPage = 1;
+                    // 跳转到视频详情页面
+                    showPage('videoDetail');
                 });
             });
             
@@ -843,6 +874,123 @@ document.getElementById('detailNextPage').addEventListener('click', function() {
     
     // 假设总页数大于当前页数，实际应用中可能需要从API获取总页数
     loadVideoDetails(filePath, currentPage + 1);
+});
+
+// 加载视频详情
+async function loadVideoDetail(page) {
+    if (!currentIndex || !currentVideoPath) return;
+    
+    // 显示加载指示器
+    const loadingIndicator = document.getElementById('videoDetailLoadingIndicator');
+    const resultsBody = document.getElementById('videoDetailResultsBody');
+    const noResults = document.getElementById('videoDetailNoResults');
+    const pagination = document.getElementById('videoDetailPagination');
+    
+    loadingIndicator.style.display = 'flex';
+    resultsBody.style.display = 'none';
+    noResults.style.display = 'none';
+    pagination.style.display = 'none';
+    
+    try {
+        // 构造请求参数
+        const params = {
+            filePath: currentVideoPath,
+            page: page,
+            pageSize: 10
+        };
+        
+        const data = await apiCall(`/indexes/${currentIndex.id}/video/details`, {
+            method: 'POST',
+            body: JSON.stringify(params)
+        });
+        
+        // 更新分页信息
+        currentVideoPage = data.page;
+        currentVideoTotalPages = data.total_pages;
+        
+        // 显示结果
+        if (data.results && data.results.length > 0) {
+            resultsBody.innerHTML = '';
+            data.results.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${formatTime(item.start)}</td>
+                    <td>${formatTime(item.end)}</td>
+                    <td>${item.text}</td>
+                    <td><button class="btn-secondary play-btn" data-time="${item.start}">播放</button></td>
+                `;
+                resultsBody.appendChild(tr);
+            });
+            
+            // 添加播放按钮事件
+            resultsBody.querySelectorAll('.play-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    playVideoAtTime(currentVideoPath, this.getAttribute('data-time'));
+                });
+            });
+            
+            resultsBody.style.display = 'table-row-group';
+            noResults.style.display = 'none';
+        } else {
+            // 如果没有结果，显示提示信息
+            resultsBody.innerHTML = '';
+            resultsBody.style.display = 'none';
+            noResults.style.display = 'block';
+        }
+        
+        // 更新分页控件
+        updateVideoDetailPagination();
+        
+        // 显示分页控件
+        if (currentVideoTotalPages > 1) {
+            pagination.style.display = 'flex';
+        }
+    } catch (error) {
+        console.error('加载视频详情失败:', error);
+        resultsBody.innerHTML = '<tr><td colspan="4" class="empty-state">加载数据失败</td></tr>';
+        resultsBody.style.display = 'table-row-group';
+        noResults.style.display = 'none';
+    } finally {
+        // 隐藏加载指示器
+        loadingIndicator.style.display = 'none';
+    }
+}
+
+// 更新视频详情分页控件
+function updateVideoDetailPagination() {
+    const pageInfoElement = document.getElementById('videoDetailPageInfo');
+    const prevButton = document.getElementById('videoDetailPrevPage');
+    const nextButton = document.getElementById('videoDetailNextPage');
+    
+    if (currentVideoTotalPages <= 1) {
+        document.getElementById('videoDetailPagination').style.display = 'none';
+        return;
+    }
+    
+    document.getElementById('videoDetailPagination').style.display = 'flex';
+    pageInfoElement.textContent = `第 ${currentVideoPage} 页，共 ${currentVideoTotalPages} 页`;
+    
+    // 更新按钮状态
+    prevButton.disabled = currentVideoPage === 1;
+    nextButton.disabled = currentVideoPage === currentVideoTotalPages;
+}
+
+// 添加视频详情页面的分页按钮事件处理
+document.getElementById('videoDetailPrevPage').addEventListener('click', function() {
+    if (currentVideoPage > 1) {
+        loadVideoDetail(currentVideoPage - 1);
+    }
+});
+
+document.getElementById('videoDetailNextPage').addEventListener('click', function() {
+    if (currentVideoPage < currentVideoTotalPages) {
+        loadVideoDetail(currentVideoPage + 1);
+    }
+});
+
+// 添加返回索引详情按钮事件处理
+document.getElementById('backToIndexDetailFromVideo').addEventListener('click', function() {
+    showPage('indexDetail');
 });
 
 function playVideoAtTime(filePath, startTime) {
