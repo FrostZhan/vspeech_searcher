@@ -976,15 +976,24 @@ function updateVideoDetailPagination() {
 }
 
 // 添加视频详情页面的分页按钮事件处理
-document.getElementById('videoDetailPrevPage').addEventListener('click', function() {
-    if (currentVideoPage > 1) {
-        loadVideoDetail(currentVideoPage - 1);
+document.addEventListener('DOMContentLoaded', function() {
+    const videoDetailPrevPage = document.getElementById('videoDetailPrevPage');
+    const videoDetailNextPage = document.getElementById('videoDetailNextPage');
+    
+    if (videoDetailPrevPage) {
+        videoDetailPrevPage.addEventListener('click', function() {
+            if (currentVideoPage > 1) {
+                loadVideoDetail(currentVideoPage - 1);
+            }
+        });
     }
-});
-
-document.getElementById('videoDetailNextPage').addEventListener('click', function() {
-    if (currentVideoPage < currentVideoTotalPages) {
-        loadVideoDetail(currentVideoPage + 1);
+    
+    if (videoDetailNextPage) {
+        videoDetailNextPage.addEventListener('click', function() {
+            if (currentVideoPage < currentVideoTotalPages) {
+                loadVideoDetail(currentVideoPage + 1);
+            }
+        });
     }
 });
 
