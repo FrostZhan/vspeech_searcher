@@ -928,7 +928,7 @@ function playVideoAtTime(filePath, startTime) {
     let command;
     if (platform === 'win32' || platform === 'win64') {
         // Windows系统使用PotPlayer播放器
-        command = `PotPlayerMini64.exe ${filePath} /seek=${seconds}`;
+        command = `PotPlayerMini64.exe "${filePath}" /seek=${seconds}`;
     } else if (platform === 'darwin') {
         // macOS系统使用PotPlayer播放器（如果已安装）
         command = `open -a PotPlayer --args "${filePath}" /seek=${seconds}`;
