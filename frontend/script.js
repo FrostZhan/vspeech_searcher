@@ -788,7 +788,7 @@ async function loadVideoDetail(page) {
         const params = {
             filePath: currentVideoPath,
             page: page,
-            pageSize: 10
+            pageSize: 100
         };
         
         const data = await apiCall(`/indexes/${currentIndex.id}/video/details`, {
