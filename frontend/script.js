@@ -390,6 +390,8 @@ function updatePagination() {
     const pageInfoElement = document.getElementById('pageInfo');
     const prevButton = document.getElementById('prevPage');
     const nextButton = document.getElementById('nextPage');
+    const pageJumpInput = document.getElementById('pageJumpInput');
+    const pageJumpBtn = document.getElementById('pageJumpBtn');
     
     if (totalPages <= 1) {
         paginationElement.style.display = 'none';
@@ -402,6 +404,11 @@ function updatePagination() {
     // 更新按钮状态
     prevButton.disabled = currentPage === 1;
     nextButton.disabled = currentPage === totalPages;
+    
+    // 设置页码输入框的范围和当前值
+    pageJumpInput.min = 1;
+    pageJumpInput.max = totalPages;
+    pageJumpInput.value = '';
     
     // 添加事件监听器（如果还没有添加）
     if (!prevButton.hasEventListener) {
@@ -424,6 +431,29 @@ function updatePagination() {
             }
         });
         nextButton.hasEventListener = true;
+    }
+    
+    // 添加页码跳转事件监听器（如果还没有添加）
+    if (!pageJumpBtn.hasEventListener) {
+        pageJumpBtn.addEventListener('click', () => {
+            const targetPage = parseInt(pageJumpInput.value);
+            if (targetPage && targetPage >= 1 && targetPage <= totalPages && targetPage !== currentPage) {
+                currentPage = targetPage;
+                displayIndexesForPage(currentPage);
+                updatePagination();
+            }
+        });
+        pageJumpBtn.hasEventListener = true;
+    }
+    
+    // 添加回车键跳转支持
+    if (!pageJumpInput.hasEventListener) {
+        pageJumpInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                pageJumpBtn.click();
+            }
+        });
+        pageJumpInput.hasEventListener = true;
     }
 }
 
@@ -853,6 +883,8 @@ function updateVideoDetailPagination() {
     const pageInfoElement = document.getElementById('videoDetailPageInfo');
     const prevButton = document.getElementById('videoDetailPrevPage');
     const nextButton = document.getElementById('videoDetailNextPage');
+    const pageJumpInput = document.getElementById('videoDetailPageJumpInput');
+    const pageJumpBtn = document.getElementById('videoDetailPageJumpBtn');
     
     if (currentVideoTotalPages <= 1) {
         document.getElementById('videoDetailPagination').style.display = 'none';
@@ -865,6 +897,32 @@ function updateVideoDetailPagination() {
     // 更新按钮状态
     prevButton.disabled = currentVideoPage === 1;
     nextButton.disabled = currentVideoPage === currentVideoTotalPages;
+    
+    // 设置页码输入框的范围和当前值
+    pageJumpInput.min = 1;
+    pageJumpInput.max = currentVideoTotalPages;
+    pageJumpInput.value = '';
+    
+    // 添加页码跳转事件监听器（如果还没有添加）
+    if (!pageJumpBtn.hasEventListener) {
+        pageJumpBtn.addEventListener('click', () => {
+            const targetPage = parseInt(pageJumpInput.value);
+            if (targetPage && targetPage >= 1 && targetPage <= currentVideoTotalPages && targetPage !== currentVideoPage) {
+                loadVideoDetail(targetPage);
+            }
+        });
+        pageJumpBtn.hasEventListener = true;
+    }
+    
+    // 添加回车键跳转支持
+    if (!pageJumpInput.hasEventListener) {
+        pageJumpInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                pageJumpBtn.click();
+            }
+        });
+        pageJumpInput.hasEventListener = true;
+    }
 }
 
 // 添加视频详情页面的事件处理
